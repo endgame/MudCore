@@ -11,15 +11,12 @@
 /**
  ** @deftypefun lua_State* lua_api_init @
  **   (void)
- **
- ** Construct and return a @code{lua_State*} which:
- **
+ ** Construct and return a @code{lua_State*} that:
  ** @itemize
  ** @item Uses GLib for memory management.
  ** @item Has the Lua standard library opened.
  ** @item Has the MudCore Lua library opened.
  ** @end itemize
- **
  ** @end deftypefun
  **/
 lua_State* lua_api_init(void);

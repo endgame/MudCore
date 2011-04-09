@@ -4,6 +4,8 @@ LDADD = $(GLib_LIBS) $(Lua_LIBS) $(ZeroMQ_LIBS)
 
 bin_PROGRAMS = mudcore
 mudcore_SOURCES = \
+	arg_parse.c \
+	arg_parse.h \
 	log.c \
 	log.h \
 	lua_api.c \

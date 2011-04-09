@@ -9,17 +9,17 @@
 #include <glib.h>
 
 /**
- ** @deftp{Data Type} enum log_level
+ ** @deftp {Data Type} {enum log_level}
  ** @code{enum log_level} is an enumeration of all possible logging
  ** levels. Each level includes messages from higher levels. Logging
  ** to @code{LOG_LEVEL_FATAL} will cause the server to @code{abort(3)}.
  ** @end deftp
  **
- ** @deftp{enum log_level} LOG_LEVEL_DEBUG
- ** @deftpx{enum log_level} LOG_LEVEL_INFO
- ** @deftpx{enum log_level} LOG_LEVEL_WARN
- ** @deftpx{enum log_level} LOG_LEVEL_ERROR
- ** @deftpx{enum log_level} LOG_LEVEL_FATAL
+ ** @deftp {enum log_level} LOG_LEVEL_DEBUG
+ ** @deftpx {enum log_level} LOG_LEVEL_INFO
+ ** @deftpx {enum log_level} LOG_LEVEL_WARN
+ ** @deftpx {enum log_level} LOG_LEVEL_ERROR
+ ** @deftpx {enum log_level} LOG_LEVEL_FATAL
  ** The various logging levels.
  ** @end deftp
  **/

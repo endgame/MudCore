@@ -1,15 +1,33 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include "lua_api.h"
 
+#include <glib.h>
 #include <lauxlib.h>
 #include <string.h>
 
 #include "log.h"
 
-static const gchar *log_levels[] = {
+static const gchar* log_levels[] = {
   "debug", "info", "warn", "error", "fatal", NULL
 };
 
-static int lua_log_call(lua_State *lua) {
+static gpointer lua_glib_alloc(gpointer ud,
+                               gpointer ptr,
+                               gsize osize,
+                               gsize nsize) {
+  (void) ud; /* not used */
+  (void) osize; /* not used */
+  if (nsize == 0) {
+    g_free(ptr);
+    return NULL;
+  } else {
+    return g_realloc(ptr, nsize);
+  }
+}
+
+static int lua_log_call(lua_State* lua) {
   if (lua_gettop(lua) < 3) return 0;
 
   lua_remove(lua, 1);
@@ -18,8 +36,8 @@ static int lua_log_call(lua_State *lua) {
   return 0;
 }
 
-static int lua_log_index(lua_State *lua) {
-  const gchar *key = luaL_checkstring(lua, 2);
+static int lua_log_index(lua_State* lua) {
+  const gchar* key = luaL_checkstring(lua, 2);
   if (strcmp(key, "level") == 0) {
     lua_pushstring(lua, log_level_to_string(log_get_level()));
   } else {
@@ -28,8 +46,8 @@ static int lua_log_index(lua_State *lua) {
   return 1;
 }
 
-static int lua_log_newindex(lua_State *lua) {
-  const gchar *key = luaL_checkstring(lua, 2);
+static int lua_log_newindex(lua_State* lua) {
+  const gchar* key = luaL_checkstring(lua, 2);
   if (strcmp(key, "level") == 0) {
     /* TODO: Make this not suck. Check type is string, and that option
        is valid. */
@@ -39,37 +57,37 @@ static int lua_log_newindex(lua_State *lua) {
   return 0;
 }
 
-static int lua_log_debug(lua_State *lua) {
-  const gchar *message = luaL_checkstring(lua, 1);
+static int lua_log_debug(lua_State* lua) {
+  const gchar* message = luaL_checkstring(lua, 1);
   DEBUG("%s", message);
   return 0;
 }
 
-static int lua_log_info(lua_State *lua) {
-  const gchar *message = luaL_checkstring(lua, 1);
+static int lua_log_info(lua_State* lua) {
+  const gchar* message = luaL_checkstring(lua, 1);
   INFO("%s", message);
   return 0;
 }
 
-static int lua_log_warn(lua_State *lua) {
-  const gchar *message = luaL_checkstring(lua, 1);
+static int lua_log_warn(lua_State* lua) {
+  const gchar* message = luaL_checkstring(lua, 1);
   WARN("%s", message);
   return 0;
 }
 
-static int lua_log_error(lua_State *lua) {
-  const gchar *message = luaL_checkstring(lua, 1);
+static int lua_log_error(lua_State* lua) {
+  const gchar* message = luaL_checkstring(lua, 1);
   ERROR("%s", message);
   return 0;
 }
 
-static int lua_log_fatal(lua_State *lua) {
-  const gchar *message = luaL_checkstring(lua, 1);
+static int lua_log_fatal(lua_State* lua) {
+  const gchar* message = luaL_checkstring(lua, 1);
   FATAL("%s", message);
   return 0;
 }
 
-static void lua_api_log_init(lua_State *lua) {
+static void lua_api_log_init(lua_State* lua) {
   lua_getglobal(lua, "mud");
   lua_newtable(lua);
 
@@ -97,8 +115,10 @@ static void lua_api_log_init(lua_State *lua) {
   lua_setfield(lua, -2, "log");
 }
 
-void lua_api_init(lua_State *lua) {
+lua_State* lua_api_init(void) {
+  lua_State* lua = lua_newstate(lua_glib_alloc, NULL);
   lua_newtable(lua);
   lua_setglobal(lua, "mud");
   lua_api_log_init(lua);
+  return lua;
 }

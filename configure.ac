@@ -12,6 +12,7 @@ AM_SILENT_RULES([yes])
 
 # Checks for programs.
 AC_PROG_CC_C99
+AC_PROG_SED
 
 # Checks for libraries.
 PKG_CHECK_MODULES([GLib], [glib-2.0])
@@ -28,5 +29,5 @@ AM_PROG_CC_C_O
 
 # Checks for library functions.
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile])
 AC_OUTPUT

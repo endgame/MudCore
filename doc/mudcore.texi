@@ -59,9 +59,11 @@ header.
 @menu
 * log.h:: Logging facility.
 * lua_api.h:: Lua API.
+* lua_log.h:: Lua logging API.
 @end menu
 
 @include log.h.texi
 @include lua_api.h.texi
+@include lua_log.h.texi
 
 @bye

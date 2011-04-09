@@ -10,4 +10,6 @@ mudcore_SOURCES = \
 	src/log.h \
 	src/lua_api.c \
 	src/lua_api.h \
+	src/lua_log.c \
+	src/lua_log.h \
 	src/mudcore.c

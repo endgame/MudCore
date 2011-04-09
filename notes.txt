@@ -1,0 +1,35 @@
+descriptor - holds fd, buffers, character name, ...
+states: open, draining, closed
+A coroutine called on each input line.
+Calling close puts the descriptor into "draining" state.
+All descriptors are stored in the table mud.descriptors, indexed by their fd.
+
+Logging:
+mud.log.level sets/gets the current log level.
+mud.log.info, mud.log.debug, ...
+all call mud.log('info', arg) (&c.)
+which calls the C logging function
+
+Timers:
+All lines are processed asap. When a player thread yields for the next
+line, an optional parameter sets the minimum delay before a line can
+be sent.
+
+ZMQ API:
+
+REQ/REP: mud.zmq.handlers is a table of handlers of some protocol
+buffer, which is decoded into a lua table.
+
+mud.zmq.publish sends a message to the ZMQ_PUB/SUB socket.
+
+Command line:
+
+port
+zmq req/rep endpoint
+zmq pub/sub endpoint
+no-file-logging
+
+arguments passed to mud.args (a table):
+- Arg with value: mud.args[arg] = value
+- Arg without value: mud.args[arg] = true
+- Positional args: mud.args[1] = arg1 .. mud.args[n] = argn

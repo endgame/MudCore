@@ -4,12 +4,6 @@ A coroutine called on each input line.
 Calling close puts the descriptor into "draining" state.
 All descriptors are stored in the table mud.descriptors, indexed by their fd.
 
-Logging:
-mud.log.level sets/gets the current log level.
-mud.log.info, mud.log.debug, ...
-all call mud.log('info', arg) (&c.)
-which calls the C logging function
-
 Timers:
 All lines are processed asap. When a player thread yields for the next
 line, an optional parameter sets the minimum delay before a line can

@@ -1,0 +1,25 @@
+@node mud.log
+@section mud.log
+
+The @code{mud.log} table is used to log messages and to control the
+logging level. @code{mud.log} can be called as a function:
+
+@defun mud.log (@var{level}, @var{message})
+Log @var{message} at the given @var{level}. @var{level} is one of
+@code{'debug'}, @code{'info'}, @code{'warn'}, @code{'error'} or
+@code{'fatal'}.
+@end defun
+
+@defvar mud.log.level
+This evaluates to one of @code{'debug'}, @code{'info'}, @code{'warn'},
+@code{'error'} or @code{'fatal'}. Assigning one of these values to it
+will change the current logging level.
+@end defvar
+
+@defun mud.log.debug (@var{message})
+@defunx mud.log.info (@var{message})
+@defunx mud.log.warn (@var{message})
+@defunx mud.log.error (@var{message})
+@defunx mud.log.fatal (@var{message})
+Convenience wrappers for the various log levels.
+@end defun

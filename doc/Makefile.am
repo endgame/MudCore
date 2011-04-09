@@ -7,7 +7,7 @@ GENERATED_TEXI = log.h.texi lua_api.h.texi
 DISTCLEANFILES = $(GENERATED_TEXI)
 
 info_TEXINFOS = mudcore.texi
-mudcore_TEXINFOS = $(GENERATED_TEXI)
+mudcore_TEXINFOS = $(GENERATED_TEXI) mud.log.texi
 
 log.h.texi:     $(top_srcdir)/src/log.h;     $(GENERATE_TEXI)
 lua_api.h.texi: $(top_srcdir)/src/lua_api.h; $(GENERATE_TEXI)

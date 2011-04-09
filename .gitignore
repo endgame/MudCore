@@ -1,4 +1,6 @@
+*.o
 .deps/
+.dirstamp
 Makefile
 Makefile.in
 aclocal.m4
@@ -14,5 +16,3 @@ log/
 m4/*.m4
 mudcore
 stamp-h1
-*.o
-.dirstamp

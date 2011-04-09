@@ -6,8 +6,8 @@ AC_INIT([mudcore], [0], [jack@jackkelly.name])
 AC_CONFIG_AUX_DIR([auxfiles])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([src/lua_api.c])
-AM_INIT_AUTOMAKE([1.11 foreign -Wall -Werror subdir-objects])
+AC_CONFIG_SRCDIR([src/mudcore.c])
+AM_INIT_AUTOMAKE([1.11 foreign -Wall -Werror])
 AM_SILENT_RULES([yes])
 
 # Checks for programs.
@@ -25,9 +25,8 @@ PKG_CHECK_MODULES([ZeroMQ], [libzmq])
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
-AM_PROG_CC_C_O
 
 # Checks for library functions.
 
-AC_CONFIG_FILES([Makefile doc/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile src/Makefile])
 AC_OUTPUT

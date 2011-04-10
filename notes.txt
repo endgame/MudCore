@@ -15,15 +15,3 @@ REQ/REP: mud.zmq.handlers is a table of handlers of some protocol
 buffer, which is decoded into a lua table.
 
 mud.zmq.publish sends a message to the ZMQ_PUB/SUB socket.
-
-Command line:
-
-port
-zmq req/rep endpoint
-zmq pub/sub endpoint
-no-file-logging
-
-arguments passed to mud.args (a table):
-- Arg with value: mud.args[arg] = value
-- Arg without value: mud.args[arg] = true
-- Positional args: mud.args[1] = arg1 .. mud.args[n] = argn

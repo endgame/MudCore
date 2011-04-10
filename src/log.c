@@ -12,7 +12,7 @@
 
 #define LOG_DIR "log"
 
-static enum log_level log_level = LOG_LEVEL_DEBUG;
+static enum log_level log_level = LOG_LEVEL_WARN;
 static FILE* log_file = NULL;
 static struct tm last_log;
 

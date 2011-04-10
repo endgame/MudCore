@@ -53,6 +53,9 @@ The following options modify the behaviour of the mud:
 @item -(no-)file-logging
 (Dis)able logging to files.
 
+@item -log-level={debug,info,warn,error,fatal}
+Set the logging level.
+
 @item -port=PORT
 Set the port for the mud's main socket.
 

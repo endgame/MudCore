@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "arg_parse.h"
+#include "log.h"
 
 #define DEFAULT_PORT "5000"
 #define DEFAULT_ZMQ_PUB_ENDPOINT "tcp://*:5001"
@@ -29,6 +30,8 @@ static void options_on_flag(const gchar* flagname,
          "=====================\n"
          "  -(no-)file-logging         (dis)able logging to file\n"
          "  -help                      print this message, then exit\n"
+         "  -log-level=LEVEL           set logging level to one of:\n"
+         "                             debug, info, warn, error or fatal\n"
          "  -port=PORT                "
          " port for the main socket [" DEFAULT_PORT "]\n"
          "  -zmq-pub-endpoint=ENDPOINT"
@@ -45,7 +48,18 @@ static void options_on_option(const gchar* name,
                               const gchar* value,
                               gpointer user_data) {
   (void) user_data; /* not used */
-  if (strcmp(name, "port") == 0) {
+  if (strcmp(name, "log-level") == 0) {
+    for (enum log_level level = LOG_LEVEL_DEBUG;
+         level <= LOG_LEVEL_FATAL;
+         level++) {
+      if (strcmp(value, log_level_to_string(level)) == 0) {
+        log_set_level(level);
+        return;
+      }
+    }
+    printf("Unknown log level \"%s\"\n", value);
+    exit(EXIT_FAILURE);
+  } else if (strcmp(name, "port") == 0) {
     g_free(port);
     port = g_strdup(value);
   } else if (strcmp(name, "zmq-pub-endpoint") == 0) {

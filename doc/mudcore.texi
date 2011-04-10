@@ -46,9 +46,11 @@ This chapter details the API available to Lua code. All functions are
 accessed through the global @code{mud} table.
 
 @menu
+* mud.args:: Access the command-line arguments.
 * mud.log:: Logging facility.
 @end menu
 
+@include mud.args.texi
 @include mud.log.texi
 
 @node C API Reference
@@ -60,12 +62,14 @@ header.
 * arg_parse.h:: Argument parsing.
 * log.h:: Logging facility.
 * lua_api.h:: Lua API.
+* lua_args.h:: Lua command-line arguments.
 * lua_log.h:: Lua logging API.
 @end menu
 
 @include arg_parse.h.texi
 @include log.h.texi
 @include lua_api.h.texi
+@include lua_args.h.texi
 @include lua_log.h.texi
 
 @bye

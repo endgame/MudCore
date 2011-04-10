@@ -80,11 +80,11 @@ struct arg_parse_funcs {
 };
 
 /**
- ** @deftypefun void arg_parse @
- **   (gint @var{argc}, @
- **    gchar* @var{argv}[], @
- **    const struct arg_parse_funcs* @var{funcs}, @
- **    gpointer @var{user_data})
+ ** @deftypefun void arg_parse                     @
+ **   (gint                          @var{argc},   @
+ **    gchar*                        @var{argv}[], @
+ **    const struct arg_parse_funcs* @var{funcs},  @
+ **    gpointer                      @var{user_data})
  ** Parse command line arguments. Call the callbacks in @var{funcs} as
  ** parsing progresses. @var{user_data} is not directly used in this
  ** function, but passed to each callback unmodified.

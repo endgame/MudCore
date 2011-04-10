@@ -98,4 +98,5 @@ void lua_log_init(lua_State* lua) {
   luaL_register(lua, NULL, log_meta_funcs);
   lua_setmetatable(lua, -2);
   lua_setfield(lua, -2, "log");
+  lua_remove(lua, -1);
 }

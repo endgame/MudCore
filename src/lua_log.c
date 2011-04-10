@@ -73,6 +73,7 @@ static int lua_log_fatal(lua_State* lua) {
 }
 
 void lua_log_init(lua_State* lua) {
+  DEBUG("Creating mud.log table.");
   lua_getglobal(lua, "mud");
   lua_newtable(lua);
 

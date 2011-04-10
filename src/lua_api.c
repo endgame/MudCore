@@ -6,6 +6,7 @@
 #include <glib.h>
 #include <lualib.h>
 
+#include "log.h"
 #include "lua_args.h"
 #include "lua_log.h"
 
@@ -24,6 +25,7 @@ static gpointer lua_glib_alloc(gpointer ud,
 }
 
 lua_State* lua_api_init(gint argc, gchar* argv[]) {
+  DEBUG("Initialising Lua API.");
   lua_State* lua = lua_newstate(lua_glib_alloc, NULL);
   luaL_openlibs(lua);
   lua_newtable(lua);

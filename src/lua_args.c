@@ -4,6 +4,7 @@
 #include "lua_args.h"
 
 #include "arg_parse.h"
+#include "log.h"
 
 static void lua_args_on_flag(const gchar* flagname,
                              gboolean value,
@@ -32,6 +33,7 @@ static void lua_args_on_positional(gint argc,
 }
 
 void lua_args_init(lua_State* lua, gint argc, gchar* argv[]) {
+  DEBUG("Creating mud.args table.");
   lua_getglobal(lua, "mud");
   lua_newtable(lua);
   struct arg_parse_funcs funcs = {

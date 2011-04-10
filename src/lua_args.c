@@ -35,8 +35,8 @@ void lua_args_init(lua_State* lua, gint argc, gchar* argv[]) {
   lua_getglobal(lua, "mud");
   lua_newtable(lua);
   struct arg_parse_funcs funcs = {
-    .on_flag = lua_args_on_flag,
-    .on_option = lua_args_on_option,
+    .on_flag       = lua_args_on_flag,
+    .on_option     = lua_args_on_option,
     .on_positional = lua_args_on_positional
   };
   arg_parse(argc, argv, &funcs, lua);

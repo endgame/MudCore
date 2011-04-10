@@ -64,6 +64,7 @@ header.
 * lua_api.h:: Lua API.
 * lua_args.h:: Lua command-line arguments.
 * lua_log.h:: Lua logging API.
+* options.h:: Command-line options used by C code.
 @end menu
 
 @include arg_parse.h.texi
@@ -71,5 +72,6 @@ header.
 @include lua_api.h.texi
 @include lua_args.h.texi
 @include lua_log.h.texi
+@include options.h.texi
 
 @bye

@@ -10,6 +10,8 @@
 #include <time.h>
 #include <zmq.h>
 
+#include "options.h"
+
 #define LOG_DIR "log"
 
 static enum log_level log_level = LOG_LEVEL_WARN;
@@ -62,12 +64,14 @@ void log_printf(enum log_level level, const gchar* format, ...) {
   gchar now_str[18]; /* "YYYYMMDD HH:MM:DD" + \0 */
   strftime(now_str, sizeof(now_str), "%Y%m%d %H:%M:%S", &now_tm);
 
-  if (log_file == NULL
-      || now_tm.tm_year > last_log.tm_year
-      || now_tm.tm_yday > last_log.tm_yday) {
-    log_rotate();
+  if (options_file_logging()) {
+    if (log_file == NULL
+        || now_tm.tm_year > last_log.tm_year
+        || now_tm.tm_yday > last_log.tm_yday) {
+      log_rotate();
+    }
+    last_log = now_tm;
   }
-  last_log = now_tm;
 
   static const char labels[] = { 'D', 'I', 'W', 'E', 'F' };
   va_list args;

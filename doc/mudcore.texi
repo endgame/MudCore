@@ -53,7 +53,7 @@ The following options modify the behaviour of the mud:
 @item -(no-)file-logging
 (Dis)able logging to files.
 
-@item -log-level={debug,info,warn,error,fatal}
+@item -log-level=@{debug,info,warn,error,fatal@}
 Set the logging level.
 
 @item -port=PORT
@@ -94,6 +94,7 @@ header.
 * lua_args.h:: Lua command-line arguments.
 * lua_log.h:: Lua logging API.
 * options.h:: Command-line options used by C code.
+* socket.h:: Basic socket operations.
 @end menu
 
 @include arg_parse.h.texi
@@ -102,5 +103,6 @@ header.
 @include lua_args.h.texi
 @include lua_log.h.texi
 @include options.h.texi
+@include socket.h.texi
 
 @bye

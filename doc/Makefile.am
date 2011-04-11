@@ -9,7 +9,8 @@ GENERATED_TEXI = \
 	lua_api.h.texi \
 	lua_args.h.texi \
 	lua_log.h.texi \
-	options.h.texi
+	options.h.texi \
+	socket.h.texi
 DISTCLEANFILES = $(GENERATED_TEXI)
 
 info_TEXINFOS = mudcore.texi
@@ -21,3 +22,4 @@ lua_api.h.texi:   $(top_srcdir)/src/lua_api.h;   $(GENERATE_TEXI)
 lua_args.h.texi:  $(top_srcdir)/src/lua_args.h;  $(GENERATE_TEXI)
 lua_log.h.texi:   $(top_srcdir)/src/lua_log.h;   $(GENERATE_TEXI)
 options.h.texi:   $(top_srcdir)/src/options.h;   $(GENERATE_TEXI)
+socket.h.texi:    $(top_srcdir)/src/socket.h;    $(GENERATE_TEXI)

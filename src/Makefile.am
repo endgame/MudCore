@@ -16,4 +16,6 @@ mudcore_SOURCES = \
 	lua_log.h \
 	mudcore.c \
 	options.c \
-	options.h
+	options.h \
+	socket.c \
+	socket.h

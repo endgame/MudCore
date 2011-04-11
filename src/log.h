@@ -80,8 +80,8 @@ void log_perror(enum log_level level, const gchar* message);
  ** @defmacx WARN (...)
  ** @defmacx ERROR (...)
  ** @defmacx FATAL (...)
- ** These are convenience wrappers around @code{log_printf}, which
- ** pass along the correct @var{LEVEL} parameter.
+ ** These are convenience wrappers around @code{log_printf()}, which
+ ** pass along the correct @code{LEVEL} parameter.
  ** @end defmac
  **/
 #define DEBUG(...) log_printf(LOG_LEVEL_DEBUG, __VA_ARGS__)
@@ -89,5 +89,21 @@ void log_perror(enum log_level level, const gchar* message);
 #define WARN(...)  log_printf(LOG_LEVEL_WARN,  __VA_ARGS__)
 #define ERROR(...) log_printf(LOG_LEVEL_ERROR, __VA_ARGS__)
 #define FATAL(...) log_printf(LOG_LEVEL_FATAL, __VA_ARGS__)
+
+/**
+ ** @defmac PDEBUG (@var{Arg})
+ ** @defmacx PINFO (@var{Arg})
+ ** @defmacx PWARN (@var{Arg})
+ ** @defmacx PERROR (@var{Arg})
+ ** @defmacx PFATAL (@var{Arg})
+ ** Convenience macros for @code{log_perror()}, which pass the
+ ** @code{LEVEL} parameter implicitly.
+ ** @end defmac
+ **/
+#define PDEBUG(Arg) log_perror(LOG_LEVEL_DEBUG, (Arg))
+#define PINFO(Arg) log_perror(LOG_LEVEL_INFO, (Arg))
+#define PWARN(Arg) log_perror(LOG_LEVEL_WARN, (Arg))
+#define PERROR(Arg) log_perror(LOG_LEVEL_ERROR, (Arg))
+#define PFATAL(Arg) log_perror(LOG_LEVEL_FATAL, (Arg))
 
 #endif

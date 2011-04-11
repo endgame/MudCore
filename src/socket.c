@@ -18,12 +18,12 @@
 static gboolean make_nonblocking(gint fd) {
   gint flags = fcntl(fd, F_GETFL);
   if (flags == -1) {
-    log_perror(LOG_LEVEL_WARN, "make_nonblocking(fcntl(F_GETFL))");
+    PWARN("make_nonblocking(fcntl(F_GETFL))");
     return FALSE;
   }
 
   if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-    log_perror(LOG_LEVEL_WARN, "make_nonblocking(fcntl(F_SETFL))");
+    PWARN("make_nonblocking(fcntl(F_SETFL))");
     return FALSE;
   }
 
@@ -47,27 +47,27 @@ gint socket_server(const gchar* port) {
     if ((fd = socket(info->ai_family,
                      info->ai_socktype,
                      info->ai_protocol)) == -1) {
-      log_perror(LOG_LEVEL_WARN, "socket_server(socket)");
+      PWARN("socket_server(socket)");
       continue;
     }
 
     gint yes = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
-      log_perror(LOG_LEVEL_WARN, "socket_server(setsockopt)");
+      PWARN("socket_server(setsockopt)");
       socket_close(fd);
       fd = -1;
       continue;
     }
 
     if (bind(fd, info->ai_addr, info->ai_addrlen) == -1) {
-      log_perror(LOG_LEVEL_WARN, "socket_server(bind)");
+      PWARN("socket_server(bind)");
       socket_close(fd);
       fd = -1;
       continue;
     }
 
     if (listen(fd, BACKLOG) == -1) {
-      log_perror(LOG_LEVEL_WARN, "socket_server(listen)");
+      PWARN("socket_server(listen)");
       socket_close(fd);
       fd = -1;
       continue;
@@ -93,7 +93,7 @@ gint socket_accept(gint fd) {
         || errno == EWOULDBLOCK
         || errno == ECONNABORTED) break;
     if (errno == EINTR) continue;
-    log_perror(LOG_LEVEL_WARN, "socket_accept(accept)");
+    PWARN("socket_accept(accept)");
   }
 
   if (new_fd != -1 && !make_nonblocking(new_fd)) {

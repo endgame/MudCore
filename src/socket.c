@@ -82,7 +82,7 @@ gint socket_server(const gchar* port) {
     break;
   }
   freeaddrinfo(infos);
-  if (fd != -1) DEBUG("Socket created: fd %d, bound to port %s", fd, port);
+  if (fd != -1) DEBUG("Socket created: fd %d, bound to port %s.", fd, port);
   return fd;
 }
 

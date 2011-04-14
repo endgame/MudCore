@@ -90,6 +90,7 @@ header.
 @menu
 * arg_parse.h:: Argument parsing.
 * buffer.h:: Circular buffers.
+* io.h:: Main input/output routines.
 * log.h:: Logging facility.
 * lua_api.h:: Lua API.
 * lua_args.h:: Lua command-line arguments.
@@ -100,6 +101,7 @@ header.
 
 @include arg_parse.h.texi
 @include buffer.h.texi
+@include io.h.texi
 @include log.h.texi
 @include lua_api.h.texi
 @include lua_args.h.texi

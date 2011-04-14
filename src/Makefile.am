@@ -8,6 +8,8 @@ mudcore_SOURCES = \
 	arg_parse.h \
 	buffer.c \
 	buffer.h \
+	io.c \
+	io.h \
 	log.c \
 	log.h \
 	lua_api.c \

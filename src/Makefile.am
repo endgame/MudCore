@@ -6,6 +6,8 @@ bin_PROGRAMS = mudcore
 mudcore_SOURCES = \
 	arg_parse.c \
 	arg_parse.h \
+	buffer.c \
+	buffer.h \
 	log.c \
 	log.h \
 	lua_api.c \

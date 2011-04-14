@@ -66,10 +66,13 @@ typedef void (*arg_parse_on_positional)(gint argc,
  ** callbacks to be @code{NULL}.
  **
  ** @deftypeivar{struct arg_parse_funcs} arg_parse_on_flag on_flag
+ ** Callback for when a flag is parsed.
  ** @end deftypeivar
  ** @deftypeivar{struct arg_parse_funcs} arg_parse_on_option on_option
+ ** Callback for when an option is parsed.
  ** @end deftypeivar
  ** @deftypeivar{struct arg_parse_funcs} arg_parse_on_positional on_positional
+ ** Callback to handle any remaining posistional arguments.
  ** @end deftypeivar
  ** @end deftp
  **/

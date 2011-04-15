@@ -1,10 +1,12 @@
 *.o
+*_test
 .deps/
 Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache/
 auxfiles/
+config.cache
 config.h
 config.h.in
 config.h.in~

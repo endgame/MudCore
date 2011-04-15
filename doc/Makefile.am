@@ -12,6 +12,7 @@ GENERATED_TEXI = \
 	lua_args.h.texi \
 	lua_log.h.texi \
 	options.h.texi \
+	queue.h.texi \
 	socket.h.texi
 DISTCLEANFILES = $(GENERATED_TEXI)
 
@@ -26,4 +27,5 @@ lua_api.h.texi:   $(top_srcdir)/src/lua_api.h;   $(GENERATE_TEXI)
 lua_args.h.texi:  $(top_srcdir)/src/lua_args.h;  $(GENERATE_TEXI)
 lua_log.h.texi:   $(top_srcdir)/src/lua_log.h;   $(GENERATE_TEXI)
 options.h.texi:   $(top_srcdir)/src/options.h;   $(GENERATE_TEXI)
+queue.h.texi:     $(top_srcdir)/src/queue.h;     $(GENERATE_TEXI)
 socket.h.texi:    $(top_srcdir)/src/socket.h;    $(GENERATE_TEXI)

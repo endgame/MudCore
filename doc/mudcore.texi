@@ -96,6 +96,7 @@ header.
 * lua_args.h:: Lua command-line arguments.
 * lua_log.h:: Lua logging API.
 * options.h:: Command-line options used by C code.
+* queue.h:: A double-ended queue of strings.
 * socket.h:: Basic socket operations.
 @end menu
 
@@ -107,6 +108,7 @@ header.
 @include lua_args.h.texi
 @include lua_log.h.texi
 @include options.h.texi
+@include queue.h.texi
 @include socket.h.texi
 
 @bye

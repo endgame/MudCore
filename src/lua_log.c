@@ -22,8 +22,8 @@ static int lua_log_call(lua_State* lua) {
 }
 
 static int lua_log_index(lua_State* lua) {
-  const gchar* key = luaL_checkstring(lua, 2);
-  if (strcmp(key, "level") == 0) {
+  if (lua_type(lua, 2) == LUA_TSTRING
+      && strcmp(lua_tostring(lua, 2), "level") == 0) {
     lua_pushstring(lua, log_level_to_string(log_get_level()));
   } else {
     lua_pushnil(lua);
@@ -32,12 +32,17 @@ static int lua_log_index(lua_State* lua) {
 }
 
 static int lua_log_newindex(lua_State* lua) {
-  const gchar* key = luaL_checkstring(lua, 2);
-  if (strcmp(key, "level") == 0) {
-    /* TODO: Make this not suck. Check type is string, and that option
-       is valid. */
-    enum log_level level = luaL_checkoption(lua, 3, NULL, log_levels);
-    log_set_level(level);
+  if (lua_type(lua, 2) != LUA_TSTRING) return 0;
+
+  if (strcmp(lua_tostring(lua, 2), "level") == 0) {
+    if (lua_type(lua, 3) != LUA_TSTRING) return 0;
+
+    const gchar* value = lua_tostring(lua, 3);
+    for (enum log_level level = LOG_LEVEL_DEBUG;
+         level <= LOG_LEVEL_FATAL;
+         level++) {
+      if (strcmp(log_levels[level], value) == 0) log_set_level(level);
+    }
   }
   return 0;
 }
@@ -75,9 +80,9 @@ static int lua_log_fatal(lua_State* lua) {
 void lua_log_init(lua_State* lua) {
   DEBUG("Creating mud.log table.");
   lua_getglobal(lua, "mud");
-  lua_newtable(lua);
 
   /* Put the convenience functions in the log table. */
+  lua_newtable(lua);
   static const luaL_Reg log_funcs[] = {
     { "debug", lua_log_debug },
     { "info" , lua_log_info  },
@@ -86,18 +91,18 @@ void lua_log_init(lua_State* lua) {
     { "fatal", lua_log_fatal },
     { NULL   , NULL          }
   };
-
   luaL_register(lua, NULL, log_funcs);
+
   /* Build the log metatable. */
+  lua_newtable(lua);
   static const luaL_Reg log_meta_funcs[] = {
     { "__call"    , lua_log_call     },
     { "__index"   , lua_log_index    },
     { "__newindex", lua_log_newindex },
     { NULL        , NULL             }
   };
-  lua_newtable(lua);
   luaL_register(lua, NULL, log_meta_funcs);
   lua_setmetatable(lua, -2);
   lua_setfield(lua, -2, "log");
-  lua_remove(lua, -1);
+  lua_pop(lua, 1);
 }

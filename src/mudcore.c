@@ -18,6 +18,9 @@ int main(int argc, char* argv[]) {
   options_init(argc - 1, argv + 1);
 
   INFO("Starting up.");
+  DEBUG("Disabling SIGPIPE.");
+  signal(SIGPIPE, SIG_IGN);
+
   DEBUG("Creating ZeroMQ context.");
   gpointer zmq_context = zmq_init(1);
   if (zmq_context == NULL) {
@@ -88,6 +91,8 @@ int main(int argc, char* argv[]) {
   DEBUG("Terminating ZeroMQ context.");
   zmq_term(zmq_context);
  err0:
+  DEBUG("Enabling SIGPIPE.");
+  signal(SIGPIPE, SIG_DFL);
   options_deinit();
   return error;
 }

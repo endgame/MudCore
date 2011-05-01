@@ -4,6 +4,16 @@ A coroutine called on each input line.
 Calling close puts the descriptor into "draining" state.
 All descriptors are stored in the table mud.descriptors, indexed by their fd.
 
+Lua API:
+
+Calling self:read(delay) yields the thread with an optional delay on
+the processing of the next input line. Delay is in usec. Calling
+self:drain() will prevent new input from being read, and will close
+the socket once the output buffer is exhausted. Calling self:close()
+will shut down a socket immediately. When a socket is closed,
+mud.descriptor.on_close(d) is called. self:will_echo(val=true) sets
+whether or not the server is echoing (for password entry &c).
+
 Timers:
 All lines are processed asap. When a player thread yields for the next
 line, an optional parameter sets the minimum delay before a line can
@@ -15,3 +25,8 @@ REQ/REP: mud.zmq.handlers is a table of handlers of some protocol
 buffer, which is decoded into a lua table.
 
 mud.zmq.publish sends a message to the ZMQ_PUB/SUB socket.
+
+TODO:
+- telnet echo
+- telnet linemode
+- telnet compress2

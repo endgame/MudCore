@@ -5,9 +5,7 @@
 
 #include "log.h"
 
-void io_mainloop(lua_State* lua,
-                 gint server,
-                 gpointer zmq_rep_socket,
-                 gpointer zmq_pub_socket) {
+void io_mainloop(gint server,
+                 gpointer zmq_rep_socket) {
   INFO("Entering main loop.");
 }

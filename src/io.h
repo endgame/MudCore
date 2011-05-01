@@ -11,16 +11,12 @@
 
 /**
  ** @deftypefun void io_mainloop        @
- **   (lua_State* @var{lua},            @
- **    gint       @var{server},         @
- **    gpointer   @var{zmq_rep_socket}, @
- **    gpointer   @var{zmq_pub_socket})
+ **   (gint       @var{server},         @
+ **    gpointer   @var{zmq_rep_socket})
  ** Run the mud's main loop.
  ** @end deftypefun
  **/
-void io_mainloop(lua_State* lua,
-                 gint server,
-                 gpointer zmq_rep_socket,
-                 gpointer zmq_pub_socket);
+void io_mainloop(gint server,
+                 gpointer zmq_rep_socket);
 
 #endif

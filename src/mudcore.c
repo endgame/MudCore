@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     goto err5;
   }
 
-  io_mainloop(lua, socket, zmq_rep_socket, zmq_pub_socket);
+  io_mainloop(socket, zmq_rep_socket);
 
  err5:
   DEBUG("Closing Lua state.");

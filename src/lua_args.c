@@ -43,5 +43,5 @@ void lua_args_init(lua_State* lua, gint argc, gchar* argv[]) {
   };
   arg_parse(argc, argv, &funcs, lua);
   lua_setfield(lua, -2, "args");
-  lua_remove(lua, -1);
+  lua_pop(lua, 1);
 }

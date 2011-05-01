@@ -95,12 +95,21 @@ gint socket_accept(gint fd) {
     if (errno == EINTR) continue;
     PWARN("socket_accept(accept)");
   }
+  if (new_fd == -1) return -1;
 
-  if (new_fd != -1 && !make_nonblocking(new_fd)) {
+  if (!make_nonblocking(new_fd)) {
     WARN("Couldn't make new socket nonblocking. Closing it.");
     socket_close(new_fd);
-    new_fd = -1;
+    return -1;
   }
+
+  gint yes = 1;
+  if (setsockopt(new_fd, SOL_SOCKET, SO_OOBINLINE, &yes, sizeof(yes)) == -1) {
+    PWARN("socket_accept(setsockopt)");
+    socket_close(new_fd);
+    return -1;
+  }
+
   return new_fd;
 }
 

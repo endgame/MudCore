@@ -20,8 +20,8 @@ gint socket_server(const gchar* port);
 /**
  ** @deftypefun gint socket_accept @
  **   (gint @var{fd})
- ** Accept a connection on @var{fd}, put it in nonblocking mode and
- ** return it. Return -1 on error.
+ ** Accept a connection on @var{fd}, put it in nonblocking mode, set
+ ** @code{SO_OOBINLINE} on it and return it. Return -1 on error.
  ** @end deftypefun
  **/
 gint socket_accept(gint fd);

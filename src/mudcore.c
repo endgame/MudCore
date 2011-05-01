@@ -65,7 +65,8 @@ int main(int argc, char* argv[]) {
   }
 
   INFO("Initialising Lua API.");
-  lua_State* lua = lua_api_init(argc - 1, argv + 1);
+  lua_api_init(argc - 1, argv + 1);
+  lua_State* lua = lua_api_get();
   DEBUG("Running ./lua/boot.lua.");
   if (luaL_dofile(lua, "./lua/boot.lua") == 1) {
     ERROR("%s", lua_tostring(lua, -1));
@@ -77,7 +78,7 @@ int main(int argc, char* argv[]) {
 
  err5:
   DEBUG("Closing Lua state.");
-  lua_close(lua);
+  lua_api_deinit();
  err4:
   DEBUG("Closing server socket.");
   socket_close(socket);

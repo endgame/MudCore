@@ -10,8 +10,8 @@
 #include <lua.h>
 
 /**
- ** @deftypefun lua_State* lua_api_init @
- **   (gint   @var{argc},               @
+ ** @deftypefun void lua_api_init @
+ **   (gint   @var{argc},         @
  **    gchar* @var{argv}[])
  ** Construct and return a @code{lua_State*} that:
  ** @itemize
@@ -21,6 +21,23 @@
  ** @end itemize
  ** @end deftypefun
  **/
-lua_State* lua_api_init(gint argc, gchar* argv[]);
+void lua_api_init(gint argc, gchar* argv[]);
+
+/**
+ ** @deftypefun void lua_api_deinit @
+ **   (void)
+ ** Release all memory used by lua code.
+ ** @end deftypefun
+ **/
+void lua_api_deinit(void);
+
+/**
+ ** @deftypefun lua_State* lua_api_get @
+ **   (void)
+ ** Return the lua state of the main thread, or @code{NULL} if
+ ** unitialised.
+ ** @end deftypefun
+ **/
+lua_State* lua_api_get(void);
 
 #endif

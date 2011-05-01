@@ -10,6 +10,8 @@
 #include "lua_args.h"
 #include "lua_log.h"
 
+static lua_State* lua = NULL;
+
 static gpointer lua_glib_alloc(gpointer ud,
                                gpointer ptr,
                                gsize osize,
@@ -24,12 +26,20 @@ static gpointer lua_glib_alloc(gpointer ud,
   }
 }
 
-lua_State* lua_api_init(gint argc, gchar* argv[]) {
-  lua_State* lua = lua_newstate(lua_glib_alloc, NULL);
+void lua_api_init(gint argc, gchar* argv[]) {
+  lua = lua_newstate(lua_glib_alloc, NULL);
   luaL_openlibs(lua);
   lua_newtable(lua);
   lua_setglobal(lua, "mud");
   lua_args_init(lua, argc, argv);
   lua_log_init(lua);
+}
+
+void lua_api_deinit(void) {
+  lua_close(lua);
+  lua = NULL;
+}
+
+lua_State* lua_api_get(void) {
   return lua;
 }

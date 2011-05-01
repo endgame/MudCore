@@ -56,7 +56,7 @@ void buffer_free(struct buffer* buffer);
  **    gint           @var{size})
  ** Add @var{size} bytes from @var{data} to @var{buffer}. If the
  ** buffer is too full, trailing data is not added. Returns the number
- ** of bytes atually added.
+ ** of bytes actually added.
  ** @end deftypefun
  **/
 gint buffer_append(struct buffer* buffer, const gchar* data, gint size);
@@ -70,6 +70,23 @@ gint buffer_append(struct buffer* buffer, const gchar* data, gint size);
  ** @end deftypefun
  **/
 gboolean buffer_append_c(struct buffer* buffer, gchar ch);
+
+/**
+ ** @deftypefun void buffer_backspace @
+ **   (struct buffer* @var{buffer})
+ ** Remove the final character in @var{buffer}. This is a no-op if
+ ** @var{buffer} is empty.
+ ** @end deftypefun
+ **/
+void buffer_backspace(struct buffer* buffer);
+
+/**
+ ** @deftypefun void buffer_clear @
+ **   (struct buffer* @var{buffer})
+ ** Remove all data in @var{buffer}.
+ ** @end deftypefun
+ **/
+void buffer_clear(struct buffer* buffer);
 
 /**
  ** @deftypefun void buffer_drain   @

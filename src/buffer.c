@@ -37,6 +37,14 @@ gboolean buffer_append_c(struct buffer* buffer, gchar ch) {
   return TRUE;
 }
 
+void buffer_backspace(struct buffer* buffer) {
+  if (buffer->used > 0) buffer->used--;
+}
+
+void buffer_clear(struct buffer* buffer) {
+  buffer->used = 0;
+}
+
 void buffer_drain(struct buffer* buffer, gint size) {
   if (size > buffer->used) {
     ERROR("Draining more than currently in buffer! (%d > %d)",

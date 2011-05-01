@@ -16,11 +16,12 @@ AC_PROG_SED
 
 # Checks for libraries.
 PKG_CHECK_MODULES([GLib], [glib-2.0])
+PKG_CHECK_MODULES([libtelnet], [libtelnet])
 LUA_PACKAGE=lua
 PKG_CHECK_EXISTS([lua5.1], [LUA_PACKAGE=lua5.1])
 PKG_CHECK_EXISTS([lua-5.1], [LUA_PACKAGE=lua-5.1])
 PKG_CHECK_MODULES([Lua], [$LUA_PACKAGE])
-PKG_CHECK_MODULES([ZeroMQ], [libzmq])
+PKG_CHECK_MODULES([ZeroMQ], [libzmq >= 2.1])
 
 # Checks for header files.
 

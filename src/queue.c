@@ -3,6 +3,8 @@
 #endif
 #include "queue.h"
 
+#include <string.h>
+
 struct queue* queue_new(gint size) {
   struct queue* rv = g_malloc(sizeof(*rv) + size * sizeof(rv->strings[0]));
   rv->size = size;
@@ -18,8 +20,14 @@ void queue_free(struct queue* queue) {
 }
 
 gboolean queue_push_back(struct queue* queue, const gchar* string) {
+  return queue_push_back_len(queue, string, strlen(string));
+}
+
+gboolean queue_push_back_len(struct queue* queue,
+                             const gchar* string,
+                             gint len) {
   if (queue->used == queue->size) return FALSE;
-  queue->strings[queue->back] = g_strdup(string);
+  queue->strings[queue->back] = g_strndup(string, len);
   queue->back = (queue->back + 1) % queue->size;
   queue->used++;
   return TRUE;

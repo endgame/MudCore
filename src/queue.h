@@ -60,11 +60,24 @@ void queue_free(struct queue* queue);
  ** @deftypefun gboolean queue_push_back @
  **   (struct queue* @var{queue},        @
  **    const gchar*  @var{string})
- ** Attempt to add @var{string} to the end of @var{queue}. Return
- ** @code{TRUE} iff there was room.
+ ** Equivalent to @code{queue_push_back_len(queue, string,
+ ** strlen(string))}.
  ** @end deftypefun
  **/
 gboolean queue_push_back(struct queue* queue, const gchar* string);
+
+/**
+ ** @deftypefun gboolean queue_push_back_len @
+ **   (struct queue* @var{queue},            @
+ **    const gchar*  @var{string},           @
+ **    gint          @var{len})
+ ** Attempt to add @var{string} of length @var{len} to the end of
+ ** @var{queue}. Return @code{TRUE} iff there was room.
+ ** @end deftypefun
+ **/
+gboolean queue_push_back_len(struct queue* queue,
+                             const gchar* string,
+                             gint len);
 
 /**
  ** @deftypefun gchar* queue_pop_front @

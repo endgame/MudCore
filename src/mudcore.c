@@ -13,6 +13,8 @@
 #include "options.h"
 #include "socket.h"
 
+#define LUA_START_FILE "./boot.lua"
+
 int main(int argc, char* argv[]) {
   int error = 0;
   options_init(argc - 1, argv + 1);
@@ -67,8 +69,8 @@ int main(int argc, char* argv[]) {
   INFO("Initialising Lua API.");
   lua_api_init(argc - 1, argv + 1);
   lua_State* lua = lua_api_get();
-  DEBUG("Running ./lua/boot.lua.");
-  if (luaL_dofile(lua, "./lua/boot.lua") == 1) {
+  DEBUG("Running " LUA_START_FILE);
+  if (luaL_dofile(lua, LUA_START_FILE) == 1) {
     ERROR("%s", lua_tostring(lua, -1));
     error = 1;
     goto err5;

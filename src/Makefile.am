@@ -24,6 +24,8 @@ COMMON_SOURCES = \
 	lua_api.h \
 	lua_args.c \
 	lua_args.h \
+	lua_descriptor.c \
+	lua_descriptor.h \
 	lua_log.c \
 	lua_log.h \
 	options.c \

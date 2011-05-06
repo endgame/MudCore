@@ -32,6 +32,7 @@ void lua_api_init(gint argc, gchar* argv[]) {
   lua_newtable(lua);
   lua_setglobal(lua, "mud");
   lua_args_init(lua, argc, argv);
+  lua_descriptor_init(lua);
   lua_log_init(lua);
 }
 

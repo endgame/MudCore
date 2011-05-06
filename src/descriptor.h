@@ -55,6 +55,9 @@ enum descriptor_state {
  ** @deftypeivar {struct descriptor} telnet_t* telnet
  ** The telnet black-box state tracker.
  ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} gint thread_ref
+ ** Reference to this descriptor's lua thread.
+ ** @end deftypeivar
  ** @deftypeivar {struct descriptor} {struct buffer*} line_buffer
  ** Buffer for the current line under assembly.
  ** @end deftypeivar
@@ -72,6 +75,7 @@ struct descriptor {
   enum descriptor_state state;
   gint fd;
   telnet_t* telnet;
+  gint thread_ref;
   gboolean skip_until_newline;
   struct buffer* line_buffer;
   struct buffer* output_buffer;

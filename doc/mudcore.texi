@@ -76,10 +76,12 @@ accessed through the global @code{mud} table.
 
 @menu
 * mud.args::                    Access the command-line arguments.
+* mud.descriptor::              Socket (descriptor) operations.
 * mud.log::                     Logging facility.
 @end menu
 
 @include mud.args.texi
+@include mud.descriptor.texi
 @include mud.log.texi
 
 @node C API Reference
@@ -95,6 +97,7 @@ header.
 * log.h::                       Logging facility.
 * lua_api.h::                   Lua API.
 * lua_args.h::                  Lua command-line arguments.
+* lua_descriptor.h::            Socket operations for Lua code.
 * lua_log.h::                   Lua logging API.
 * options.h::                   Command-line options used by C code.
 * queue.h::                     A double-ended queue of strings.
@@ -108,6 +111,7 @@ header.
 @include log.h.texi
 @include lua_api.h.texi
 @include lua_args.h.texi
+@include lua_descriptor.h.texi
 @include lua_log.h.texi
 @include options.h.texi
 @include queue.h.texi

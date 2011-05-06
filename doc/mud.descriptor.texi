@@ -1,0 +1,30 @@
+@node mud.descriptor
+@section mud.descriptor
+
+The @code{mud.descriptor} table holds the primitives for socket
+operations. Each client gets its own lua thread, and can block until
+input is available. Descriptors are referred to by their file descriptor
+number.
+
+@defun mud.descriptor.close (@var{fd})
+Close a descriptor immediately.
+@end defun
+
+@defun mud.descriptor.drain (@var{fd})
+Put a descriptor into the @emph{draining} state; no new input can be
+received and the descriptor will close after all pending output has been
+sent.
+@end defun
+
+@defun mud.descriptor.on_open (@var{fd})
+Your code needs to define this function. It is the entry point for new
+threads. If you don't, clients will be dropped.
+@end defun
+
+@defun mud.descriptor.read ()
+Pause this thread until the next input line is available.
+@end defun
+
+@defun mud.descriptor.send (@var{fd}, @var{str})
+Send @var{str} to @var{fd}.
+@end defun

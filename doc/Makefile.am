@@ -11,6 +11,7 @@ GENERATED_TEXI = \
 	log.h.texi \
 	lua_api.h.texi \
 	lua_args.h.texi \
+	lua_descriptor.h.texi \
 	lua_log.h.texi \
 	options.h.texi \
 	queue.h.texi \
@@ -18,16 +19,21 @@ GENERATED_TEXI = \
 DISTCLEANFILES = $(GENERATED_TEXI)
 
 info_TEXINFOS = mudcore.texi
-mudcore_TEXINFOS = $(GENERATED_TEXI) mud.args.texi mud.log.texi
+mudcore_TEXINFOS = \
+	$(GENERATED_TEXI) \
+	mud.args.texi \
+	mud.descriptor.texi \
+	mud.log.texi
 
-arg_parse.h.texi:  $(top_srcdir)/src/arg_parse.h;  $(GENERATE_TEXI)
-buffer.h.texi:     $(top_srcdir)/src/buffer.h;     $(GENERATE_TEXI)
-descriptor.h.texi: $(top_srcdir)/src/descriptor.h; $(GENERATE_TEXI)
-io.h.texi:         $(top_srcdir)/src/io.h;         $(GENERATE_TEXI)
-log.h.texi:        $(top_srcdir)/src/log.h;        $(GENERATE_TEXI)
-lua_api.h.texi:    $(top_srcdir)/src/lua_api.h;    $(GENERATE_TEXI)
-lua_args.h.texi:   $(top_srcdir)/src/lua_args.h;   $(GENERATE_TEXI)
-lua_log.h.texi:    $(top_srcdir)/src/lua_log.h;    $(GENERATE_TEXI)
-options.h.texi:    $(top_srcdir)/src/options.h;    $(GENERATE_TEXI)
-queue.h.texi:      $(top_srcdir)/src/queue.h;      $(GENERATE_TEXI)
-socket.h.texi:     $(top_srcdir)/src/socket.h;     $(GENERATE_TEXI)
+arg_parse.h.texi:      $(top_srcdir)/src/arg_parse.h;      $(GENERATE_TEXI)
+buffer.h.texi:         $(top_srcdir)/src/buffer.h;         $(GENERATE_TEXI)
+descriptor.h.texi:     $(top_srcdir)/src/descriptor.h;     $(GENERATE_TEXI)
+io.h.texi:             $(top_srcdir)/src/io.h;             $(GENERATE_TEXI)
+log.h.texi:            $(top_srcdir)/src/log.h;            $(GENERATE_TEXI)
+lua_api.h.texi:        $(top_srcdir)/src/lua_api.h;        $(GENERATE_TEXI)
+lua_args.h.texi:       $(top_srcdir)/src/lua_args.h;       $(GENERATE_TEXI)
+lua_descriptor.h.texi: $(top_srcdir)/src/lua_descriptor.h; $(GENERATE_TEXI)
+lua_log.h.texi:        $(top_srcdir)/src/lua_log.h;        $(GENERATE_TEXI)
+options.h.texi:        $(top_srcdir)/src/options.h;        $(GENERATE_TEXI)
+queue.h.texi:          $(top_srcdir)/src/queue.h;          $(GENERATE_TEXI)
+socket.h.texi:         $(top_srcdir)/src/socket.h;         $(GENERATE_TEXI)

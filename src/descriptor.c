@@ -3,11 +3,14 @@
 #endif
 #include "descriptor.h"
 
+#include <lauxlib.h>
 #include <string.h>
 #include <sys/socket.h>
 
 #include "buffer.h"
 #include "log.h"
+#include "lua_api.h"
+#include "lua_descriptor.h"
 #include "queue.h"
 #include "socket.h"
 
@@ -23,6 +26,7 @@ static GHashTable* /* of int -> struct descriptor* */ descriptors;
 static void descriptor_destroy(gpointer user_data) {
   struct descriptor* descriptor = user_data;
   descriptor_close(descriptor);
+  luaL_unref(lua_api_get(), LUA_REGISTRYINDEX, descriptor->thread_ref);
   telnet_free(descriptor->telnet);
   buffer_free(descriptor->line_buffer);
   buffer_free(descriptor->output_buffer);
@@ -186,11 +190,14 @@ void descriptor_new_fd(gint fd) {
     return;
   }
 
+  descriptor->thread_ref = LUA_NOREF;
   descriptor->skip_until_newline = FALSE;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
   descriptor->output_buffer = buffer_new(OUTPUT_BUFFER_SIZE);
   descriptor->command_queue = queue_new(COMMAND_QUEUE_SIZE);
   g_hash_table_insert(descriptors, GINT_TO_POINTER(fd), descriptor);
+
+  lua_descriptor_start(descriptor);
 }
 
 void descriptor_remove_closed(void) {

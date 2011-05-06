@@ -3,6 +3,7 @@
 #endif
 #include "io.h"
 
+#include <sys/time.h>
 #include <zmq.h>
 
 #include "descriptor.h"
@@ -57,7 +58,9 @@ void io_mainloop(gint server,
   };
 
   while (TRUE) {
-    // TODO: Mark start time.
+    struct timeval poll_start;
+    gettimeofday(&poll_start, NULL);
+
     descriptor_remove_closed();
 
     g_array_set_size(pollitems, 0);
@@ -77,9 +80,10 @@ void io_mainloop(gint server,
                       &poll_count);
     descriptor_handle_pollitems(pollitems, poll_count);
 
-    // TODO: Mark end time.
-    // TODO: execute ticks.
+    struct timeval poll_end;
+    gettimeofday(&poll_end, NULL);
     // TODO: actually count missed ticks.
+    // TODO: execute commands for all missed ticks.
     descriptor_handle_commands();
     // TODO: sleep out remaining time.
   }

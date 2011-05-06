@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <zmq.h>
 
+#include "descriptor.h"
 #include "io.h"
 #include "log.h"
 #include "lua_api.h"
@@ -20,6 +21,8 @@ int main(int argc, char* argv[]) {
   options_init(argc - 1, argv + 1);
 
   INFO("Starting up.");
+  descriptor_init();
+
   DEBUG("Disabling SIGPIPE.");
   signal(SIGPIPE, SIG_IGN);
 
@@ -97,5 +100,6 @@ int main(int argc, char* argv[]) {
   DEBUG("Enabling SIGPIPE.");
   signal(SIGPIPE, SIG_DFL);
   options_deinit();
+  descriptor_deinit();
   return error;
 }

@@ -2,7 +2,14 @@ descriptor - holds fd, buffers, character name, ...
 states: open, draining, closed
 A coroutine called on each input line.
 Calling close puts the descriptor into "draining" state.
-All descriptors are stored in the table mud.descriptors, indexed by their fd.
+All descriptors are stored in the table mud.descriptors, indexed by
+their fd.
+
+Descriptor table and its lua version.
+
+Each descriptor structure lives in a global hashtable, indexed by
+fd. This is mirrored as a lua userdata holding a descriptor pointer
+which implements the api below.
 
 Lua API:
 

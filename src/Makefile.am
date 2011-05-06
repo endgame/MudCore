@@ -14,6 +14,8 @@ COMMON_SOURCES = \
 	arg_parse.h \
 	buffer.c \
 	buffer.h \
+	descriptor.c \
+	descriptor.h \
 	io.c \
 	io.h \
 	log.c \

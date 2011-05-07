@@ -123,6 +123,7 @@ static void descriptor_handle_input(struct descriptor* descriptor,
                           "Input queue full. Command discarded.\r\n");
       }
       buffer_clear(descriptor->line_buffer);
+      continue;
     }
     if (descriptor->skip_until_newline) continue;
     if (data[i] == '\b') {
@@ -266,7 +267,9 @@ void descriptor_handle_commands(void) {
     // TODO: Check that nextcommand delay has passed.
     if (descriptor->state == DESCRIPTOR_STATE_OPEN
         && descriptor->command_queue->used > 0) {
-      // TODO: Hand off to Lua.
+      gchar* command = queue_pop_front(descriptor->command_queue);
+      lua_descriptor_resume(descriptor, command);
+      g_free(command);
     }
   }
 }

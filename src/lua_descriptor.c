@@ -83,11 +83,34 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_getfield(thread, -1, "on_open");
   lua_remove(thread, -2);
   lua_pushinteger(thread, descriptor->fd);
-  switch (lua_resume(thread, 1)) {
-  case 0:
-    descriptor_drain(descriptor);
-    break;
-  default:
-    FATAL("wha?");
+  lua_descriptor_resume(descriptor, NULL);
+}
+
+void lua_descriptor_resume(struct descriptor* descriptor,
+                           const gchar* command) {
+  lua_State* lua = lua_api_get();
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
+  lua_State* thread;
+  if (lua_isnil(lua, -1) || (thread = lua_tothread(lua, -1)) == NULL) {
+    ERROR("Descriptor has lost its thread!");
+    descriptor_close(descriptor);
+  } else {
+    if (command != NULL) lua_pushstring(thread, command);
+    /* Descriptor threads are started with no string argument, but
+       have the fd number as the only argument instead. Therefore,
+       it's always safe to pass 1 to lua_resume. */
+    switch (lua_resume(thread, 1)) {
+    case 0: /* Terminated. */
+      descriptor_drain(descriptor);
+      return;
+    case LUA_YIELD:
+      // TODO: Handle nextcommand delay.
+      break;
+    default: /* Error. */
+      ERROR("Error in lua code: %s", lua_tostring(thread, -1));
+      descriptor_drain(descriptor);
+      break;
+    }
   }
+  lua_pop(lua, 1);
 }

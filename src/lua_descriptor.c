@@ -51,6 +51,19 @@ static int lua_descriptor_send(lua_State* lua) {
   return 0;
 }
 
+static int lua_descriptor_send_prompt(lua_State* lua) {
+  static gboolean warned = FALSE;
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+  if (descriptor != NULL) {
+    if (!warned) {
+      WARN("Using default mud.descriptor.send_prompt.");
+      warned = TRUE;
+    }
+    descriptor_append(descriptor, "? ");
+  }
+  return 0;
+}
+
 void lua_descriptor_init(lua_State* lua) {
   DEBUG("Creating mud.descriptor table.");
   lua_getglobal(lua, "mud");
@@ -58,12 +71,13 @@ void lua_descriptor_init(lua_State* lua) {
   /* Put functions in the descriptor table. */
   lua_newtable(lua);
   static const luaL_Reg descriptor_funcs[] = {
-    { "close"  , lua_descriptor_close   },
-    { "drain"  , lua_descriptor_drain   },
-    { "on_open", lua_descriptor_on_open },
-    { "read"   , lua_descriptor_read    },
-    { "send"   , lua_descriptor_send    },
-    { NULL     , NULL                   }
+    { "close"      , lua_descriptor_close       },
+    { "drain"      , lua_descriptor_drain       },
+    { "on_open"    , lua_descriptor_on_open     },
+    { "read"       , lua_descriptor_read        },
+    { "send"       , lua_descriptor_send        },
+    { "send_prompt", lua_descriptor_send_prompt },
+    { NULL         , NULL                       }
   };
   luaL_register(lua, NULL, descriptor_funcs);
 

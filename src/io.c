@@ -85,6 +85,7 @@ void io_mainloop(gint server,
     // TODO: actually count missed ticks.
     // TODO: execute commands for all missed ticks.
     descriptor_handle_commands();
+    descriptor_send_prompts();
     // TODO: sleep out remaining time.
   }
 

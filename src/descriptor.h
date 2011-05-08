@@ -58,6 +58,14 @@ enum descriptor_state {
  ** @deftypeivar {struct descriptor} gint thread_ref
  ** Reference to this descriptor's lua thread.
  ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} gboolean skip_until_newline
+ ** If the line buffer fills up, excess input until the next newline
+ ** is discarded.
+ ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} gboolean needs_prompt
+ ** After output has beend sent to the descriptor, it will need to
+ ** send a fresh prompt.
+ ** @end deftypeivar
  ** @deftypeivar {struct descriptor} {struct buffer*} line_buffer
  ** Buffer for the current line under assembly.
  ** @end deftypeivar
@@ -77,6 +85,7 @@ struct descriptor {
   telnet_t* telnet;
   gint thread_ref;
   gboolean skip_until_newline;
+  gboolean needs_prompt;
   struct buffer* line_buffer;
   struct buffer* output_buffer;
   struct queue* command_queue;
@@ -139,6 +148,14 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
  ** @end deftypefun
  **/
 void descriptor_handle_commands(void);
+
+/**
+ ** @deftypefun void descriptor_send_prompt @
+ **   (void)
+ ** Send a fresh prompt to any descriptors that need one.
+ ** @end deftypefun
+ **/
+void descriptor_send_prompts(void);
 
 /**
  ** @deftypefun {struct descriptor*} descriptor_get @

@@ -28,3 +28,10 @@ Pause this thread until the next input line is available.
 @defun mud.descriptor.send (@var{fd}, @var{str})
 Send @var{str} to @var{fd}.
 @end defun
+
+@defun mud.descriptor.send_prompt (@var{fd})
+This function is called whenever a descriptor needs to have a new
+prompt. It is called for each FD that has had input performed or output
+sent to it since its last prompt, just before the telnet IAC GA sequence
+is sent. The default prompt is boring, and leaves a warning in the log.
+@end defun

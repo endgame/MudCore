@@ -169,6 +169,26 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
   }
 }
 
+/* Send a fresh prompt (from Lua), followed by IAC GA. */
+static void descriptor_send_prompt(struct descriptor* descriptor) {
+  lua_State* lua = lua_api_get();
+  /* Call mud.descriptor.send_prompt. */
+  lua_getglobal(lua, "mud");
+  lua_getfield(lua, -1, "descriptor");
+  lua_remove(lua, -2);
+  lua_getfield(lua, -1, "send_prompt");
+  lua_remove(lua, -2);
+  lua_pushinteger(lua, descriptor->fd);
+  if (lua_pcall(lua, 1, 0, 0) != 0) {
+    const gchar* what = lua_tostring(lua, -1);
+    ERROR("Error in mud.descriptor.send_prompt: %s", what);
+    lua_pop(lua, 1);
+    descriptor_close(descriptor);
+  }
+  descriptor->needs_prompt = FALSE;
+  telnet_iac(descriptor->telnet, TELNET_GA);
+}
+
 void descriptor_init(void) {
   descriptors = g_hash_table_new_full(g_direct_hash,
                                       g_direct_equal,
@@ -201,6 +221,7 @@ void descriptor_new_fd(gint fd) {
 
   descriptor->thread_ref = LUA_NOREF;
   descriptor->skip_until_newline = FALSE;
+  descriptor->needs_prompt = TRUE;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
   descriptor->output_buffer = buffer_new(OUTPUT_BUFFER_SIZE);
   descriptor->command_queue = queue_new(COMMAND_QUEUE_SIZE);
@@ -261,10 +282,17 @@ void descriptor_handle_commands(void) {
     // TODO: Check that nextcommand delay has passed.
     if (descriptor->state == DESCRIPTOR_STATE_OPEN
         && descriptor->command_queue->used > 0) {
+      descriptor->needs_prompt = TRUE;
       gchar* command = queue_pop_front(descriptor->command_queue);
       lua_descriptor_resume(descriptor, command);
       g_free(command);
     }
+  }
+}
+
+void descriptor_send_prompts(void) {
+  DESCRIPTOR_FOREACH(iter, descriptor) {
+    if (descriptor->needs_prompt) descriptor_send_prompt(descriptor);
   }
 }
 
@@ -274,6 +302,7 @@ struct descriptor* descriptor_get(gint fd) {
 
 void descriptor_append(struct descriptor* descriptor, const gchar* msg) {
   telnet_send(descriptor->telnet, msg, strlen(msg));
+  descriptor->needs_prompt = TRUE;
 }
 
 void descriptor_close(struct descriptor* descriptor) {

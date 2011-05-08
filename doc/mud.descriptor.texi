@@ -7,10 +7,6 @@ input is available. Descriptors are referred to by their file descriptor
 number.
 
 @defun mud.descriptor.close (@var{fd})
-Close a descriptor immediately.
-@end defun
-
-@defun mud.descriptor.drain (@var{fd})
 Put a descriptor into the @emph{draining} state; no new input can be
 received and the descriptor will close after all pending output has been
 sent.

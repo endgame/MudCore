@@ -19,12 +19,6 @@ static struct descriptor* lua_descriptor_get(lua_State* lua, gint index) {
 
 static int lua_descriptor_close(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
-  if (descriptor != NULL) descriptor_close(descriptor);
-  return 0;
-}
-
-static int lua_descriptor_drain(lua_State* lua) {
-  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) descriptor_drain(descriptor);
   return 0;
 }
@@ -72,7 +66,6 @@ void lua_descriptor_init(lua_State* lua) {
   lua_newtable(lua);
   static const luaL_Reg descriptor_funcs[] = {
     { "close"      , lua_descriptor_close       },
-    { "drain"      , lua_descriptor_drain       },
     { "on_open"    , lua_descriptor_on_open     },
     { "read"       , lua_descriptor_read        },
     { "send"       , lua_descriptor_send        },

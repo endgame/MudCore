@@ -8,8 +8,11 @@ line, an optional parameter sets the minimum delay before a line can
 be sent.
 
 ZMQ API:
-REQ/REP: mud.zmq.handlers is a table of handlers of some protocol
-buffer, which is decoded into a lua table.
+
+REQ/REP: mud.zmq.handlers is a table of handler functions, which are
+functions that take a table as an argument. These functions return a
+table, which is converted into json and sent to the ZMQ socket. The
+'name' field of the table is used to select the handler function.
 
 mud.zmq.publish sends a message to the ZMQ_PUB/SUB socket.
 

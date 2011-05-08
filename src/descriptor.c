@@ -22,6 +22,14 @@
 /* Encapsulated table of all client descriptors. */
 static GHashTable* /* of int -> struct descriptor* */ descriptors;
 
+/* Iterate through the descriptor table. Iter names the iterator,
+   Value the descriptor pointer. */
+#define DESCRIPTOR_FOREACH(Iter, Value)                 \
+  GHashTableIter Iter;                                  \
+  g_hash_table_iter_init(&Iter, descriptors);           \
+  struct descriptor* Value;                             \
+  while (g_hash_table_iter_next(&Iter, NULL, (gpointer*)&Value))
+
 /* Close and deallocate a descriptor. */
 static void descriptor_destroy(gpointer user_data) {
   struct descriptor* descriptor = user_data;
@@ -202,12 +210,7 @@ void descriptor_new_fd(gint fd) {
 }
 
 void descriptor_remove_closed(void) {
-  GHashTableIter iter;
-  g_hash_table_iter_init(&iter, descriptors);
-  gpointer value;
-  while (g_hash_table_iter_next(&iter, NULL, &value)) {
-    struct descriptor* descriptor = value;
-
+  DESCRIPTOR_FOREACH(iter, descriptor) {
     if (descriptor->state == DESCRIPTOR_STATE_DRAINING
         && descriptor->output_buffer->used == 0) {
       descriptor_close(descriptor);
@@ -220,14 +223,9 @@ void descriptor_remove_closed(void) {
 }
 
 void descriptor_add_pollitems(GArray* /* of zmq_pollitem_t */ pollitems) {
-  GHashTableIter iter;
-  g_hash_table_iter_init(&iter, descriptors);
-  gpointer value;
   zmq_pollitem_t pollitem;
   memset(&pollitem, 0, sizeof(pollitem));
-
-  while (g_hash_table_iter_next(&iter, NULL, &value)) {
-    struct descriptor* descriptor = value;
+  DESCRIPTOR_FOREACH(iter, descriptor) {
     pollitem.fd = descriptor->fd;
     pollitem.events = ZMQ_POLLERR;
     if (descriptor_should_recv(descriptor)) pollitem.events |= ZMQ_POLLIN;
@@ -259,11 +257,7 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
 }
 
 void descriptor_handle_commands(void) {
-  GHashTableIter iter;
-  g_hash_table_iter_init(&iter, descriptors);
-  gpointer value;
-  while (g_hash_table_iter_next(&iter, NULL, &value)) {
-    struct descriptor* descriptor = value;
+  DESCRIPTOR_FOREACH(iter, descriptor) {
     // TODO: Check that nextcommand delay has passed.
     if (descriptor->state == DESCRIPTOR_STATE_OPEN
         && descriptor->command_queue->used > 0) {

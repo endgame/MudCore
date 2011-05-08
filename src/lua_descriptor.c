@@ -47,7 +47,7 @@ static int lua_descriptor_read(lua_State* lua) {
 static int lua_descriptor_send(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   const gchar* str = luaL_checkstring(lua, 2);
-  descriptor_append(descriptor, str);
+  if (descriptor != NULL) descriptor_append(descriptor, str);
   return 0;
 }
 

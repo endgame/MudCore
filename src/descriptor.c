@@ -307,6 +307,22 @@ void descriptor_append(struct descriptor* descriptor, const gchar* msg) {
 
 void descriptor_close(struct descriptor* descriptor) {
   if (descriptor->state == DESCRIPTOR_STATE_CLOSED) return;
+  lua_State* lua = lua_api_get();
+  lua_getglobal(lua, "mud");
+  lua_getfield(lua, -1, "descriptor");
+  lua_remove(lua, -2);
+  lua_getfield(lua, -1, "on_close");
+  lua_remove(lua, -2);
+  if (lua_isnil(lua, -1)) {
+    lua_pop(lua, 1);
+  } else {
+    lua_pushinteger(lua, descriptor->fd);
+    if (lua_pcall(lua, 1, 0, 0) != 0) {
+      const gchar* what = lua_tostring(lua, -1);
+      ERROR("Error in mud.descriptor.on_close: %s", what);
+      lua_pop(lua, 1);
+    }
+  }
   descriptor->state = DESCRIPTOR_STATE_CLOSED;
   socket_close(descriptor->fd);
 }

@@ -12,6 +12,12 @@ received and the descriptor will close after all pending output has been
 sent.
 @end defun
 
+@defun mud.descriptor.on_close (@var{fd})
+This callback, if defined, is called when a descriptor closes. The
+descriptor won't be suitable for writing at this point, but here's a
+good place to remove references to @var{fd} from your data structures.
+@end defun
+
 @defun mud.descriptor.on_open (@var{fd})
 Your code needs to define this function. It is the entry point for new
 threads. If you don't, clients will be dropped.

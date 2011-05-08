@@ -1,6 +1,5 @@
 Lua API:
-When a socket is closed, mud.descriptor.on_close(d) is
-called. self:will_echo(val=true) sets whether or not the server is
+self:will_echo(val=true) sets whether or not the server is
 echoing (for password entry &c).
 
 Timers:

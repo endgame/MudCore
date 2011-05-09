@@ -21,9 +21,16 @@ LUA_PACKAGE=lua
 PKG_CHECK_EXISTS([lua5.1], [LUA_PACKAGE=lua5.1])
 PKG_CHECK_EXISTS([lua-5.1], [LUA_PACKAGE=lua-5.1])
 PKG_CHECK_MODULES([Lua], [$LUA_PACKAGE])
+AC_SEARCH_LIBS([yajl_parse],
+               [yajl yajl_s],
+               [:],
+               [AC_MSG_ERROR([YAJL required, but not found.])])
 PKG_CHECK_MODULES([ZeroMQ], [libzmq >= 2.1])
 
 # Checks for header files.
+AC_CHECK_HEADERS([yajl/yajl_gen.h yajl/yajl_parse.h],
+                 [:],
+                 [AC_MSG_ERROR([A required YAJL header is missing.])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

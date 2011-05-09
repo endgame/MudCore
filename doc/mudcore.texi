@@ -45,8 +45,7 @@ This manual is for MudCore, version @value{VERSION}.
 
 Running @code{mudcore} starts the mud. Log files are written to
 @code{./log}. Once sockets are opened, the Lua interpreter is started
-and @code{./lua/boot.lua} is run. Control is then handed to the main
-loop.
+and @code{./boot.lua} is run. Control is then handed to the main loop.
 
 The following options modify the behaviour of the mud:
 @table @samp

@@ -37,3 +37,9 @@ prompt. It is called for each FD that has had input performed or output
 sent to it since its last prompt, just before the telnet IAC GA sequence
 is sent. The default prompt is boring, and leaves a warning in the log.
 @end defun
+
+@defun mud.descriptor.will_echo (@var{fd}, @var{will})
+Manipulate the telnet ECHO option. Turning the option on means that the
+server is responsible for echoing input. Turning it on but echoing
+nothing is common for password dialogs.
+@end defun

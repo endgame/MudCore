@@ -58,6 +58,14 @@ static int lua_descriptor_send_prompt(lua_State* lua) {
   return 0;
 }
 
+static int lua_descriptor_will_echo(lua_State* lua) {
+  gboolean will = TRUE;
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+  if (lua_gettop(lua) == 2) will = lua_toboolean(lua, 2);
+  descriptor_will_echo(descriptor, will);
+  return 0;
+}
+
 void lua_descriptor_init(lua_State* lua) {
   DEBUG("Creating mud.descriptor table.");
   lua_getglobal(lua, "mud");
@@ -70,6 +78,7 @@ void lua_descriptor_init(lua_State* lua) {
     { "read"       , lua_descriptor_read        },
     { "send"       , lua_descriptor_send        },
     { "send_prompt", lua_descriptor_send_prompt },
+    { "will_echo"  , lua_descriptor_will_echo   },
     { NULL         , NULL                       }
   };
   luaL_register(lua, NULL, descriptor_funcs);

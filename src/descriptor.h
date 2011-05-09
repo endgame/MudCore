@@ -66,6 +66,12 @@ enum descriptor_state {
  ** After output has beend sent to the descriptor, it will need to
  ** send a fresh prompt.
  ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} gboolean will_echo
+ ** Tracks whether or not the descriptor is doing local echo. Note
+ ** that echoing doesn't happen automatically, so that things like
+ ** password input work correctly. User code should echo what is deems
+ ** necessary.
+ ** @end deftypeivar
  ** @deftypeivar {struct descriptor} {struct buffer*} line_buffer
  ** Buffer for the current line under assembly.
  ** @end deftypeivar
@@ -86,6 +92,7 @@ struct descriptor {
   gint thread_ref;
   gboolean skip_until_newline;
   gboolean needs_prompt;
+  gboolean will_echo;
   struct buffer* line_buffer;
   struct buffer* output_buffer;
   struct queue* command_queue;
@@ -193,5 +200,15 @@ void descriptor_close(struct descriptor* descriptor);
  ** @end deftypefun
  **/
 void descriptor_drain(struct descriptor* descriptor);
+
+/**
+ ** @deftypefun void descriptor_will_echo   @
+ **   (struct descriptor* @var{descriptor}, @
+ **    gboolean           @var{will})
+ ** Starts negotiating the telnet ECHO option. Turning it on but
+ ** echoing nothing is common when doing password entry.
+ ** @end deftypefun
+ **/
+void descriptor_will_echo(struct descriptor* descriptor, gboolean will);
 
 #endif

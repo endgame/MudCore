@@ -1,3 +1,6 @@
+Descriptors:
+Append '\n' before sending out stuff from a prompt?
+
 Lua API:
 self:will_echo(val=true) sets whether or not the server is
 echoing (for password entry &c).

@@ -148,7 +148,7 @@ static void descriptor_handle_input(struct descriptor* descriptor,
 static void descriptor_on_telnet_event(telnet_t* telnet,
                                        telnet_event_t* event,
                                        gpointer user_data) {
-  (void)telnet; /* Not used. */
+  (void) telnet; /* Not used. */
   struct descriptor* descriptor = user_data;
   switch (event->type) {
   case TELNET_EV_DATA:
@@ -156,6 +156,12 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
     break;
   case TELNET_EV_SEND:
     descriptor_buffer_output(descriptor, event->data.buffer, event->data.size);
+    break;
+  case TELNET_EV_DO:
+    if (event->neg.telopt == TELNET_TELOPT_ECHO) descriptor->will_echo = TRUE;
+    break;
+  case TELNET_EV_DONT:
+    if (event->neg.telopt == TELNET_TELOPT_ECHO) descriptor->will_echo = FALSE;
     break;
   case TELNET_EV_WARNING:
     WARN("libtelnet warning: %s", event->error.msg);
@@ -207,7 +213,8 @@ void descriptor_new_fd(gint fd) {
 
   /* TODO: handle telnet options. */
   static const telnet_telopt_t telopts[] = {
-    { -1, 0, 0 }
+    { TELNET_TELOPT_ECHO, TELNET_WILL, TELNET_DONT },
+    {                 -1,           0,           0 }
   };
   descriptor->telnet = telnet_init(telopts,
                                    descriptor_on_telnet_event,
@@ -222,6 +229,7 @@ void descriptor_new_fd(gint fd) {
   descriptor->thread_ref = LUA_NOREF;
   descriptor->skip_until_newline = FALSE;
   descriptor->needs_prompt = TRUE;
+  descriptor->will_echo = FALSE;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
   descriptor->output_buffer = buffer_new(OUTPUT_BUFFER_SIZE);
   descriptor->command_queue = queue_new(COMMAND_QUEUE_SIZE);
@@ -329,4 +337,12 @@ void descriptor_close(struct descriptor* descriptor) {
 
 void descriptor_drain(struct descriptor* descriptor) {
   descriptor->state = DESCRIPTOR_STATE_DRAINING;
+}
+
+void descriptor_will_echo(struct descriptor* descriptor, gboolean will) {
+  if (will != descriptor->will_echo) {
+    telnet_negotiate(descriptor->telnet,
+                     will ? TELNET_WILL : TELNET_WONT,
+                     TELNET_TELOPT_ECHO);
+  }
 }

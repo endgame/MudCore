@@ -28,4 +28,3 @@ the ZMQ_PUB/SUB socket.
 
 TODO:
 - telnet linemode
-- telnet compress2

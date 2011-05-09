@@ -158,7 +158,14 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
     descriptor_buffer_output(descriptor, event->data.buffer, event->data.size);
     break;
   case TELNET_EV_DO:
-    if (event->neg.telopt == TELNET_TELOPT_ECHO) descriptor->will_echo = TRUE;
+    switch (event->neg.telopt) {
+    case TELNET_TELOPT_COMPRESS2:
+      telnet_begin_compress2(descriptor->telnet);
+      break;
+    case TELNET_TELOPT_ECHO:
+      descriptor->will_echo = TRUE;
+      break;
+    }
     break;
   case TELNET_EV_DONT:
     if (event->neg.telopt == TELNET_TELOPT_ECHO) descriptor->will_echo = FALSE;
@@ -212,8 +219,9 @@ void descriptor_new_fd(gint fd) {
   descriptor->fd = fd;
 
   static const telnet_telopt_t telopts[] = {
-    { TELNET_TELOPT_ECHO, TELNET_WILL, TELNET_DONT },
-    {                 -1,           0,           0 }
+    { TELNET_TELOPT_ECHO     , TELNET_WILL, TELNET_DONT },
+    { TELNET_TELOPT_COMPRESS2, TELNET_WILL, TELNET_DONT },
+    {                      -1,           0,           0 }
   };
   descriptor->telnet = telnet_init(telopts,
                                    descriptor_on_telnet_event,
@@ -234,6 +242,8 @@ void descriptor_new_fd(gint fd) {
   descriptor->command_queue = queue_new(COMMAND_QUEUE_SIZE);
   g_hash_table_insert(descriptors, GINT_TO_POINTER(fd), descriptor);
 
+  /* Offer supported telnet options. */
+  telnet_negotiate(descriptor->telnet, TELNET_WILL, TELNET_TELOPT_COMPRESS2);
   lua_descriptor_start(descriptor);
 }
 

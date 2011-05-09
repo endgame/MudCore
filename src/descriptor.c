@@ -211,7 +211,6 @@ void descriptor_new_fd(gint fd) {
   descriptor->state = DESCRIPTOR_STATE_OPEN;
   descriptor->fd = fd;
 
-  /* TODO: handle telnet options. */
   static const telnet_telopt_t telopts[] = {
     { TELNET_TELOPT_ECHO, TELNET_WILL, TELNET_DONT },
     {                 -1,           0,           0 }

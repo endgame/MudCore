@@ -1,25 +1,31 @@
 Descriptors:
 Append '\n' before sending out stuff from a prompt?
 
-Lua API:
-self:will_echo(val=true) sets whether or not the server is
-echoing (for password entry &c).
-
 Timers:
 All lines are processed asap. When a player thread yields for the next
 line, an optional parameter sets the minimum delay before a line can
 be sent.
 
+Lua API (timers):
+
+mud.timer.register(delay, callback) registers a timer that calls
+callback (a function of no arguments) after no less than delay
+milliseconds. It returns a token which can be passed to
+mud.timer.cancel. If callback returns a nonnegative value, it is
+rescheduled for that number of milliseconds into the future. If
+callback returns nil, the timer is cancelled.
+
+mud.timer.cancel(token) removes a timer.
+
 ZMQ API:
 
-REQ/REP: mud.zmq.handlers is a table of handler functions, which are
-functions that take a table as an argument. These functions return a
-table, which is converted into json and sent to the ZMQ socket. The
-'name' field of the table is used to select the handler function.
+REQ/REP: mud.zmq.on_request is the handler function for the ZMQ_REQ
+socket. It takes a table (parsed from JSON) and returns a table, which
+is converted to JSON and sent to the ZMQ socket.
 
-mud.zmq.publish sends a message to the ZMQ_PUB/SUB socket.
+mud.zmq.publish sends a message (a table, also serialised to JSON) to
+the ZMQ_PUB/SUB socket.
 
 TODO:
-- telnet echo
 - telnet linemode
 - telnet compress2

@@ -8,6 +8,7 @@
 
 #include "log.h"
 #include "lua_args.h"
+#include "lua_descriptor.h"
 #include "lua_log.h"
 
 static lua_State* lua = NULL;

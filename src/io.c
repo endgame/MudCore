@@ -8,9 +8,8 @@
 
 #include "descriptor.h"
 #include "log.h"
+#include "options.h"
 #include "socket.h"
-
-#define PULSE_LENGTH (100 * 1000) /* In microseconds */
 
 /* Process any revents on the server fd and the ZMQ_REP socket. */
 static void io_handle_servers(zmq_pollitem_t* server_item,
@@ -57,6 +56,7 @@ void io_mainloop(gint server,
     }
   };
 
+  const gint pulse_length = options_pulse_length();
   while (TRUE) {
     struct timeval poll_start;
     gettimeofday(&poll_start, NULL);
@@ -70,7 +70,7 @@ void io_mainloop(gint server,
     /* Poll & process. */
     gint poll_count = zmq_poll((zmq_pollitem_t*)pollitems->data,
                                pollitems->len,
-                               PULSE_LENGTH);
+                               pulse_length);
     io_handle_servers(&g_array_index(pollitems,
                                      zmq_pollitem_t,
                                      0),

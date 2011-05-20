@@ -42,6 +42,14 @@ gboolean options_file_logging(void);
 gchar* options_port(void);
 
 /**
+ ** @deftypefun gint options_pulse_length @
+ **   (void)
+ ** Get the value of the @code{-pulse-length} flag.
+ ** @end deftypefun
+ **/
+gint options_pulse_length(void);
+
+/**
  ** @deftypefun gchar* options_zmq_pub_endpoint @
  **   (void)
  ** Get the value of the @code{-zmq-pub-endpoint} option.

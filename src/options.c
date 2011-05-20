@@ -11,11 +11,13 @@
 #include "log.h"
 
 #define DEFAULT_PORT "5000"
+#define DEFAULT_PULSE_LENGTH (100 * 1000) /* in microseconds */
 #define DEFAULT_ZMQ_PUB_ENDPOINT "tcp://*:5001"
 #define DEFAULT_ZMQ_REP_ENDPOINT "tcp://*:5002"
 
 static gboolean file_logging = TRUE;
 static gchar* port = NULL;
+static gint pulse_length = DEFAULT_PULSE_LENGTH;
 static gchar* zmq_pub_endpoint = NULL;
 static gchar* zmq_rep_endpoint = NULL;
 
@@ -34,6 +36,8 @@ static void options_on_flag(const gchar* flagname,
          "                             debug, info, warn, error or fatal\n"
          "  -port=PORT                "
          " port for the main socket [" DEFAULT_PORT "]\n"
+         "  -pulse-length=LENGTH      "
+         " length of each pulse in usec [" G_STRINGIFY(DEFAULT_PULSE_RATE) "]\n"
          "  -zmq-pub-endpoint=ENDPOINT"
          " ZeroMQ endpoint for pub socket [" DEFAULT_ZMQ_PUB_ENDPOINT "]\n"
          "  -zmq-rep-endpoint=ENDPOINT"
@@ -95,6 +99,10 @@ gboolean options_file_logging(void) {
 
 gchar* options_port(void) {
   return port;
+}
+
+gint options_pulse_length(void) {
+  return pulse_length;
 }
 
 gchar* options_zmq_pub_endpoint(void) {

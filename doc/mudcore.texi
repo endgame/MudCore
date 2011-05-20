@@ -58,6 +58,10 @@ Set the logging level.
 @item -port=PORT
 Set the port for the mud's main socket.
 
+@item -pulse-length=LENGTH
+Override the MUD's default pulse length (100 milliseconds). This value
+is given in microseconds.
+
 @item -zmq-pub-endpoint=ENDPOINT
 Set the ZeroMQ endpoint for the @code{ZMQ_PUB} socket.
 

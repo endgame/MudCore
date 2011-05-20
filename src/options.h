@@ -50,11 +50,11 @@ gchar* options_port(void);
 gchar* options_zmq_pub_endpoint(void);
 
 /**
- ** @deftypefun gchar* options_zmq_req_endpoint @
+ ** @deftypefun gchar* options_zmq_rep_endpoint @
  **   (void)
- ** Get the value of the @code{-zmq-req-endpoint} option.
+ ** Get the value of the @code{-zmq-rep-endpoint} option.
  ** @end deftypefun
  **/
-gchar* options_zmq_req_endpoint(void);
+gchar* options_zmq_rep_endpoint(void);
 
 #endif

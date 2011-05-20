@@ -12,12 +12,12 @@
 
 #define DEFAULT_PORT "5000"
 #define DEFAULT_ZMQ_PUB_ENDPOINT "tcp://*:5001"
-#define DEFAULT_ZMQ_REQ_ENDPOINT "tcp://*:5002"
+#define DEFAULT_ZMQ_REP_ENDPOINT "tcp://*:5002"
 
 static gboolean file_logging = TRUE;
 static gchar* port = NULL;
 static gchar* zmq_pub_endpoint = NULL;
-static gchar* zmq_req_endpoint = NULL;
+static gchar* zmq_rep_endpoint = NULL;
 
 static void options_on_flag(const gchar* flagname,
                             gboolean value,
@@ -36,8 +36,8 @@ static void options_on_flag(const gchar* flagname,
          " port for the main socket [" DEFAULT_PORT "]\n"
          "  -zmq-pub-endpoint=ENDPOINT"
          " ZeroMQ endpoint for pub socket [" DEFAULT_ZMQ_PUB_ENDPOINT "]\n"
-         "  -zmq-req-endpoint=ENDPOINT"
-         " ZeroMQ endpoint for req socket [" DEFAULT_ZMQ_REQ_ENDPOINT "]\n"
+         "  -zmq-rep-endpoint=ENDPOINT"
+         " ZeroMQ endpoint for rep socket [" DEFAULT_ZMQ_REP_ENDPOINT "]\n"
          "\n"
          "Lua code may use other flags not documented here.");
     exit(EXIT_SUCCESS);
@@ -65,16 +65,16 @@ static void options_on_option(const gchar* name,
   } else if (strcmp(name, "zmq-pub-endpoint") == 0) {
     g_free(zmq_pub_endpoint);
     zmq_pub_endpoint = g_strdup(zmq_pub_endpoint);
-  } else if (strcmp(name, "zmq-req-endpoint") == 0) {
-    g_free(zmq_req_endpoint);
-    zmq_req_endpoint = g_strdup(zmq_req_endpoint);
+  } else if (strcmp(name, "zmq-rep-endpoint") == 0) {
+    g_free(zmq_rep_endpoint);
+    zmq_rep_endpoint = g_strdup(zmq_rep_endpoint);
   }
 }
 
 void options_init(gint argc, gchar* argv[]) {
   port = g_strdup(DEFAULT_PORT);
   zmq_pub_endpoint = g_strdup(DEFAULT_ZMQ_PUB_ENDPOINT);
-  zmq_req_endpoint = g_strdup(DEFAULT_ZMQ_REQ_ENDPOINT);
+  zmq_rep_endpoint = g_strdup(DEFAULT_ZMQ_REP_ENDPOINT);
   struct arg_parse_funcs funcs = {
     .on_flag       = options_on_flag,
     .on_option     = options_on_option,
@@ -86,7 +86,7 @@ void options_init(gint argc, gchar* argv[]) {
 void options_deinit(void) {
   g_free(port);
   g_free(zmq_pub_endpoint);
-  g_free(zmq_req_endpoint);
+  g_free(zmq_rep_endpoint);
 }
 
 gboolean options_file_logging(void) {
@@ -101,6 +101,6 @@ gchar* options_zmq_pub_endpoint(void) {
   return zmq_pub_endpoint;
 }
 
-gchar* options_zmq_req_endpoint(void) {
-  return zmq_req_endpoint;
+gchar* options_zmq_rep_endpoint(void) {
+  return zmq_rep_endpoint;
 }

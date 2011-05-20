@@ -61,8 +61,8 @@ Set the port for the mud's main socket.
 @item -zmq-pub-endpoint=ENDPOINT
 Set the ZeroMQ endpoint for the @code{ZMQ_PUB} socket.
 
-@item -zmq-req-endpoint=ENDPOINT
-Set the ZeroMQ endpoint for the @code{ZMQ_REQ} socket.
+@item -zmq-rep-endpoint=ENDPOINT
+Set the ZeroMQ endpoint for the @code{ZMQ_REP} socket.
 
 All command-line arguments are available to Lua code. @xref{mud.args}.
 @end table

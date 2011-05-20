@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     goto err1;
   }
 
-  if (zmq_bind(zmq_rep_socket, options_zmq_req_endpoint()) == -1) {
+  if (zmq_bind(zmq_rep_socket, options_zmq_rep_endpoint()) == -1) {
     PERROR("main(zmq_bind(ZMQ_REP))");
     error = 1;
     goto err2;

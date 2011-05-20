@@ -309,7 +309,10 @@ void descriptor_handle_commands(void) {
 
 void descriptor_send_prompts(void) {
   DESCRIPTOR_FOREACH(iter, descriptor) {
-    if (descriptor->needs_prompt) descriptor_send_prompt(descriptor);
+    if (descriptor->needs_prompt
+        && descriptor->state == DESCRIPTOR_STATE_OPEN) {
+      descriptor_send_prompt(descriptor);
+    }
   }
 }
 

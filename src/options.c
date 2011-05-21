@@ -24,7 +24,7 @@ static gchar* zmq_rep_endpoint = NULL;
 static void options_on_flag(const gchar* flagname,
                             gboolean value,
                             gpointer user_data) {
-  (void) user_data; /* not used */
+  (void) user_data; /* Not used. */
   if (strcmp(flagname, "file-logging") == 0) {
     file_logging = value;
   } else if (strcmp(flagname, "help") == 0 && value) {
@@ -51,7 +51,7 @@ static void options_on_flag(const gchar* flagname,
 static void options_on_option(const gchar* name,
                               const gchar* value,
                               gpointer user_data) {
-  (void) user_data; /* not used */
+  (void) user_data; /* Not used. */
   if (strcmp(name, "log-level") == 0) {
     for (enum log_level level = LOG_LEVEL_DEBUG;
          level <= LOG_LEVEL_FATAL;

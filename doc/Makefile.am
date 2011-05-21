@@ -16,7 +16,8 @@ GENERATED_TEXI = \
 	lua_zmq.h.texi \
 	options.h.texi \
 	queue.h.texi \
-	socket.h.texi
+	socket.h.texi \
+	timeval.h.texi
 DISTCLEANFILES = $(GENERATED_TEXI)
 
 info_TEXINFOS = mudcore.texi
@@ -40,3 +41,4 @@ lua_zmq.h.texi:        $(top_srcdir)/src/lua_zmq.h;        $(GENERATE_TEXI)
 options.h.texi:        $(top_srcdir)/src/options.h;        $(GENERATE_TEXI)
 queue.h.texi:          $(top_srcdir)/src/queue.h;          $(GENERATE_TEXI)
 socket.h.texi:         $(top_srcdir)/src/socket.h;         $(GENERATE_TEXI)
+timeval.h.texi:        $(top_srcdir)/src/timeval.h;        $(GENERATE_TEXI)

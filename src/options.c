@@ -3,6 +3,7 @@
 #endif
 #include "options.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 #include "log.h"
 
 #define DEFAULT_PORT "5000"
-#define DEFAULT_PULSE_LENGTH (100 * 1000) /* in microseconds */
+#define DEFAULT_PULSE_LENGTH 100000 /* in microseconds */
 #define DEFAULT_ZMQ_PUB_ENDPOINT "tcp://*:5001"
 #define DEFAULT_ZMQ_REP_ENDPOINT "tcp://*:5002"
 
@@ -37,7 +38,7 @@ static void options_on_flag(const gchar* flagname,
          "  -port=PORT                "
          " port for the main socket [" DEFAULT_PORT "]\n"
          "  -pulse-length=LENGTH      "
-         " length of each pulse in usec [" G_STRINGIFY(DEFAULT_PULSE_RATE) "]\n"
+         " length of each pulse in usec [" G_STRINGIFY(DEFAULT_PULSE_LENGTH) "]\n"
          "  -zmq-pub-endpoint=ENDPOINT"
          " ZeroMQ endpoint for pub socket [" DEFAULT_ZMQ_PUB_ENDPOINT "]\n"
          "  -zmq-rep-endpoint=ENDPOINT"
@@ -66,6 +67,13 @@ static void options_on_option(const gchar* name,
   } else if (strcmp(name, "port") == 0) {
     g_free(port);
     port = g_strdup(value);
+  } else if (strcmp(name, "pulse-length") == 0) {
+    errno = 0;
+    pulse_length = strtol(value, NULL, 10);
+    if (errno != 0 || pulse_length >= 1000000) {
+      fprintf(stderr, "Invalid number for -pulse-length: %s\n", value);
+      exit(EXIT_FAILURE);
+    }
   } else if (strcmp(name, "zmq-pub-endpoint") == 0) {
     g_free(zmq_pub_endpoint);
     zmq_pub_endpoint = g_strdup(zmq_pub_endpoint);

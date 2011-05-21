@@ -108,6 +108,7 @@ header.
 * options.h::                   Command-line options used by C code.
 * queue.h::                     A double-ended queue of strings.
 * socket.h::                    Basic socket operations.
+* timeval.h::                   Utility functions for struct timeval.
 @end menu
 
 @include arg_parse.h.texi
@@ -123,5 +124,6 @@ header.
 @include options.h.texi
 @include queue.h.texi
 @include socket.h.texi
+@include timeval.h.texi
 
 @bye

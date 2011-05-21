@@ -35,4 +35,6 @@ COMMON_SOURCES = \
 	queue.c \
 	queue.h \
 	socket.c \
-	socket.h
+	socket.h \
+	timeval.c \
+	timeval.h

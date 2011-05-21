@@ -11,6 +11,7 @@
 #include "lua_zmq.h"
 #include "options.h"
 #include "socket.h"
+#include "timeval.h"
 
 /* Process any revents on the server fd and the ZMQ_REP socket. */
 static void io_handle_servers(zmq_pollitem_t* server_item,
@@ -47,6 +48,12 @@ static void io_handle_servers(zmq_pollitem_t* server_item,
     zmq_msg_close(&msg);
     (*pollitems)--;
   }
+}
+
+/* Handle one tick of the server. */
+static void io_tick(void) {
+  descriptor_handle_commands();
+  // TODO: check/call/expire/timers.
 }
 
 void io_mainloop(gint server,
@@ -94,11 +101,39 @@ void io_mainloop(gint server,
 
     struct timeval poll_end;
     gettimeofday(&poll_end, NULL);
-    // TODO: actually count missed ticks.
-    // TODO: execute commands for all missed ticks.
-    descriptor_handle_commands();
+
+    /* Count and execute any missed ticks. */
+    struct timeval delta = poll_end;
+    timeval_sub(&delta, &poll_start);
+    const struct timeval pulse = {
+      .tv_sec = 0,
+      .tv_usec = pulse_length
+    };
+    gint missed_ticks = 0;
+    while (timeval_compare(&delta, &pulse) > 1) {
+      timeval_sub(&delta, &pulse);
+      missed_ticks++;
+    }
+    if (missed_ticks > 0) WARN("Missed %d ticks.", missed_ticks);
+    for (gint i = 0; i < missed_ticks; i++) io_tick();
+
+    io_tick();
     descriptor_send_prompts();
-    // TODO: sleep out remaining time.
+
+    /* Sleep out remaining time if we have any to spare. */
+    if (missed_ticks == 0) {
+      struct timeval remain = pulse;
+      timeval_sub(&remain, &delta);
+      struct timespec to_sleep = {
+        .tv_sec = remain.tv_sec,
+        .tv_nsec = remain.tv_usec * 1000
+      };
+
+      while (nanosleep(&to_sleep, &to_sleep) == -1) {
+        if (errno == EINTR) continue;
+        break;
+      }
+    }
   }
 
   g_array_free(pollitems, TRUE);

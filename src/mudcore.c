@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
   }
 
   INFO("Initialising Lua API.");
-  lua_api_init(argc - 1, argv + 1);
+  lua_api_init(zmq_pub_socket, argc - 1, argv + 1);
   lua_State* lua = lua_api_get();
   DEBUG("Running " LUA_START_FILE);
   if (luaL_dofile(lua, LUA_START_FILE) == 1) {

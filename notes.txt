@@ -1,3 +1,5 @@
+Need mud.shutdown() function.
+
 Descriptors:
 Append '\n' before sending out stuff from a prompt?
 
@@ -16,15 +18,5 @@ rescheduled for that number of milliseconds into the future. If
 callback returns nil, the timer is cancelled.
 
 mud.timer.cancel(token) removes a timer.
-
-ZMQ API:
-
-REQ/REP: mud.zmq.on_request is the handler function for the ZMQ_REQ
-socket. It takes a table (parsed from JSON) and returns a table, which
-is converted to JSON and sent to the ZMQ socket.
-
-mud.zmq.publish sends a message (a table, also serialised to JSON) to
-the ZMQ_PUB/SUB socket.
-
 TODO:
 - telnet linemode

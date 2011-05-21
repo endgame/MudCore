@@ -28,6 +28,8 @@ COMMON_SOURCES = \
 	lua_descriptor.h \
 	lua_log.c \
 	lua_log.h \
+	lua_zmq.c \
+	lua_zmq.h \
 	options.c \
 	options.h \
 	queue.c \

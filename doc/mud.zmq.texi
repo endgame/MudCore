@@ -1,0 +1,19 @@
+@node mud.zmq
+@section mud.zmq
+
+The @code{mud.zmq} table has functions for commmunication with external
+programs. This is how the ZeroMQ sockets specified by the
+@code{-zmq-pub-endpoint} and @code{-zmq-rep-endpoint} are accessed.
+
+@defun mud.zmq.on_request (@var{message})
+This user-supplied function is called when a message arrives on the
+@code{ZMQ_REP} socket. @var{message} is the message that arrived, as a
+Lua string. Note that lua strings can contain embedded @code{\0}
+characters, so this could be abitrary binary data. The return value of
+this function is sent back on the socket.
+@end defun
+
+@defun mud.zmq.publish (@var{message})
+Send a message on the @code{ZMQ_PUB} socket. @var{message} is a string,
+but may contain embedded @code{\0} characters.
+@end defun

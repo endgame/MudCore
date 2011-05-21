@@ -8,6 +8,7 @@
 
 #include "descriptor.h"
 #include "log.h"
+#include "lua_zmq.h"
 #include "options.h"
 #include "socket.h"
 
@@ -31,8 +32,19 @@ static void io_handle_servers(zmq_pollitem_t* server_item,
   }
 
   if (zmq_rep_item->revents != 0) {
-    // TODO: Process, hand off to lua.
-    FATAL("TODO: message received on ZMQ_REP socket. What do I do?");
+    zmq_msg_t msg;
+    zmq_msg_init(&msg);
+    gint rc = zmq_recv(zmq_rep_item->socket, &msg, ZMQ_NOBLOCK);
+    if (rc == -1) {
+      if (errno == EAGAIN) return; /* No message? No problem. */
+      PERROR("io_handle_servers(zmq_recv)");
+      return;
+    }
+
+    lua_zmq_on_request(zmq_rep_item->socket,
+                       zmq_msg_data(&msg),
+                       zmq_msg_size(&msg));
+    zmq_msg_close(&msg);
     (*pollitems)--;
   }
 }

@@ -10,10 +10,12 @@
 #include <lua.h>
 
 /**
- ** @deftypefun void lua_api_init @
- **   (gint   @var{argc},         @
- **    gchar* @var{argv}[])
- ** Construct and return a @code{lua_State*} that:
+ ** @deftypefun void lua_api_init     @
+ **   (gpointer @var{zmq_pub_socket}, @
+ **    gint     @var{argc},           @
+ **    gchar*   @var{argv}[])
+ ** Construct a @code{lua_State*} (that is accessible using
+ ** @code{lua_api_get()} that:
  ** @itemize
  ** @item Uses GLib for memory management.
  ** @item Has the Lua standard library opened.
@@ -21,7 +23,7 @@
  ** @end itemize
  ** @end deftypefun
  **/
-void lua_api_init(gint argc, gchar* argv[]);
+void lua_api_init(gpointer zmq_pub_socket, gint argc, gchar* argv[]);
 
 /**
  ** @deftypefun void lua_api_deinit @

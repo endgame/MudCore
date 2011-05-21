@@ -4,6 +4,8 @@ Descriptors:
 Append '\n' before sending out stuff from a prompt?
 
 Timers:
+Remove pulse rate, since commands proceed in lockstep anyway?
+
 All lines are processed asap. When a player thread yields for the next
 line, an optional parameter sets the minimum delay before a line can
 be sent.
@@ -18,5 +20,13 @@ rescheduled for that number of milliseconds into the future. If
 callback returns nil, the timer is cancelled.
 
 mud.timer.cancel(token) removes a timer.
+
+ZMQ_API:
+
+mud.zmq.send(endpoint, msg, callback) creates a ZMQ_REQ socket,
+connects it to ENDPOINT, sends MSG and polls it (as part of the normal
+event loop) until a reply is received. When this happens, it calls
+CALLBACK (a unary function) and closes the socket.
+
 TODO:
 - telnet linemode

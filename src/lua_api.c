@@ -4,8 +4,10 @@
 #include "lua_api.h"
 
 #include <glib.h>
+#include <lauxlib.h>
 #include <lualib.h>
 
+#include "io.h"
 #include "log.h"
 #include "lua_args.h"
 #include "lua_descriptor.h"
@@ -15,6 +17,7 @@
 
 static lua_State* lua = NULL;
 
+/* Allocation function for lua using GLib's memory management. */
 static gpointer lua_glib_alloc(gpointer ud,
                                gpointer ptr,
                                gsize osize,
@@ -29,10 +32,21 @@ static gpointer lua_glib_alloc(gpointer ud,
   }
 }
 
+static gint lua_shutdown(lua_State* lua) {
+  (void) lua; /* Not used. */
+  io_shutdown();
+  return 0;
+}
+
 void lua_api_init(gpointer zmq_pub_socket, gint argc, gchar* argv[]) {
   lua = lua_newstate(lua_glib_alloc, NULL);
   luaL_openlibs(lua);
   lua_newtable(lua);
+  static const luaL_Reg funcs[] = {
+    { "shutdown", lua_shutdown },
+    { NULL      , NULL         }
+  };
+  luaL_register(lua, NULL, funcs);
   lua_setglobal(lua, "mud");
   lua_args_init(lua, argc, argv);
   lua_descriptor_init(lua);

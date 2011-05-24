@@ -77,6 +77,10 @@ All command-line arguments are available to Lua code. @xref{mud.args}.
 This chapter details the API available to Lua code. All functions are
 accessed through the global @code{mud} table.
 
+@defun mud.shutdown ()
+Shut down the mud.
+@end defun
+
 @menu
 * mud.args::                    Access the command-line arguments.
 * mud.descriptor::              Socket (descriptor) operations.

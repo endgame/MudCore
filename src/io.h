@@ -19,4 +19,12 @@
 void io_mainloop(gint server,
                  gpointer zmq_rep_socket);
 
+/**
+ ** @deftypefun void io_shutdown @
+ **   (void)
+ ** Shut down the server.
+ ** @end deftypefun
+ **/
+void io_shutdown(void);
+
 #endif

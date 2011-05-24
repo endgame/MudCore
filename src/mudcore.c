@@ -76,14 +76,11 @@ int main(int argc, char* argv[]) {
   if (luaL_dofile(lua, LUA_START_FILE) == 1) {
     ERROR("%s", lua_tostring(lua, -1));
     error = 1;
-    goto err5;
+    goto err4;
   }
 
   io_mainloop(socket, zmq_rep_socket);
 
- err5:
-  DEBUG("Closing Lua state.");
-  lua_api_deinit();
  err4:
   DEBUG("Closing server socket.");
   socket_close(socket);
@@ -101,5 +98,9 @@ int main(int argc, char* argv[]) {
   signal(SIGPIPE, SIG_DFL);
   options_deinit();
   descriptor_deinit();
+  if (lua_api_get() != NULL) {
+    DEBUG("Closing Lua state.");
+    lua_api_deinit();
+  }
   return error;
 }

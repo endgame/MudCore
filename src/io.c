@@ -14,6 +14,8 @@
 #include "socket.h"
 #include "timeval.h"
 
+static gboolean shutdown = FALSE;
+
 /* Process any revents on the server fd and the ZMQ_REP socket. */
 static void io_handle_servers(zmq_pollitem_t* server_item,
                               zmq_pollitem_t* zmq_rep_item,
@@ -71,7 +73,7 @@ void io_mainloop(gint server,
   };
 
   const gint pulse_length = options_pulse_length();
-  while (TRUE) {
+  while (!shutdown) {
     struct timeval start;
     gettimeofday(&start, NULL);
 
@@ -94,16 +96,20 @@ void io_mainloop(gint server,
                                      1),
                       &poll_count);
     descriptor_handle_pollitems(pollitems, poll_count);
-
-    struct timeval now;
-    gettimeofday(&now, NULL);
-
     descriptor_handle_commands();
     descriptor_send_prompts();
 
     /* Sleep out remaining time on this pulse. */
-    struct timeval remain = pulse;
-    timeval_sub(&remain, &delta);
+    struct timeval remain = {
+      .tv_sec = 0,
+      .tv_usec = pulse_length
+    };
+    timeval_add(&remain, &start);
+
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    timeval_sub(&remain, &now);
+
     struct timespec to_sleep = {
       .tv_sec = remain.tv_sec,
       .tv_nsec = remain.tv_usec * 1000
@@ -116,4 +122,8 @@ void io_mainloop(gint server,
   }
 
   g_array_free(pollitems, TRUE);
+}
+
+void io_shutdown(void) {
+  shutdown = TRUE;
 }

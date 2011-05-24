@@ -1,5 +1,3 @@
-Need mud.shutdown() function.
-
 Descriptors:
 Append '\n' before sending out stuff from a prompt?
 

@@ -23,7 +23,7 @@ static gchar* copy_lua_string(lua_State* lua, gint index, gsize* length) {
   return memcpy(g_new(gchar, *length), str, *length);
 }
 
-static int lua_zmq_publish(lua_State* lua) {
+static gint lua_zmq_publish(lua_State* lua) {
   luaL_checkstring(lua, 1);
   gsize msg_length;
   gchar* msg_data = copy_lua_string(lua, 1, &msg_length);

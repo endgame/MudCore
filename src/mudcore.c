@@ -17,7 +17,7 @@
 #define LUA_START_FILE "./boot.lua"
 
 int main(int argc, char* argv[]) {
-  int error = 0;
+  gint error = 0;
   options_init(argc - 1, argv + 1);
 
   INFO("Starting up.");

@@ -17,13 +17,13 @@ static struct descriptor* lua_descriptor_get(lua_State* lua, gint index) {
   return descriptor_get(fd);
 }
 
-static int lua_descriptor_close(lua_State* lua) {
+static gint lua_descriptor_close(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) descriptor_drain(descriptor);
   return 0;
 }
 
-static int lua_descriptor_on_open(lua_State* lua) {
+static gint lua_descriptor_on_open(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) {
     descriptor_append(descriptor,
@@ -33,19 +33,19 @@ static int lua_descriptor_on_open(lua_State* lua) {
   return 0;
 }
 
-static int lua_descriptor_read(lua_State* lua) {
+static gint lua_descriptor_read(lua_State* lua) {
   // TODO: add input delay support.
   return lua_yield(lua, 0);
 }
 
-static int lua_descriptor_send(lua_State* lua) {
+static gint lua_descriptor_send(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   const gchar* str = luaL_checkstring(lua, 2);
   if (descriptor != NULL) descriptor_append(descriptor, str);
   return 0;
 }
 
-static int lua_descriptor_send_prompt(lua_State* lua) {
+static gint lua_descriptor_send_prompt(lua_State* lua) {
   static gboolean warned = FALSE;
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) {
@@ -58,7 +58,7 @@ static int lua_descriptor_send_prompt(lua_State* lua) {
   return 0;
 }
 
-static int lua_descriptor_will_echo(lua_State* lua) {
+static gint lua_descriptor_will_echo(lua_State* lua) {
   gboolean will = TRUE;
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (lua_gettop(lua) == 2) will = lua_toboolean(lua, 2);

@@ -12,7 +12,7 @@ static const gchar* log_levels[] = {
   "debug", "info", "warn", "error", "fatal", NULL
 };
 
-static int lua_log_call(lua_State* lua) {
+static gint lua_log_call(lua_State* lua) {
   if (lua_gettop(lua) < 3) return 0;
 
   lua_remove(lua, 1);
@@ -21,7 +21,7 @@ static int lua_log_call(lua_State* lua) {
   return 0;
 }
 
-static int lua_log_index(lua_State* lua) {
+static gint lua_log_index(lua_State* lua) {
   if (lua_type(lua, 2) == LUA_TSTRING
       && strcmp(lua_tostring(lua, 2), "level") == 0) {
     lua_pushstring(lua, log_level_to_string(log_get_level()));
@@ -31,7 +31,7 @@ static int lua_log_index(lua_State* lua) {
   return 1;
 }
 
-static int lua_log_newindex(lua_State* lua) {
+static gint lua_log_newindex(lua_State* lua) {
   if (lua_type(lua, 2) != LUA_TSTRING) return 0;
 
   if (strcmp(lua_tostring(lua, 2), "level") == 0) {
@@ -47,31 +47,31 @@ static int lua_log_newindex(lua_State* lua) {
   return 0;
 }
 
-static int lua_log_debug(lua_State* lua) {
+static gint lua_log_debug(lua_State* lua) {
   const gchar* message = luaL_checkstring(lua, 1);
   DEBUG("%s", message);
   return 0;
 }
 
-static int lua_log_info(lua_State* lua) {
+static gint lua_log_info(lua_State* lua) {
   const gchar* message = luaL_checkstring(lua, 1);
   INFO("%s", message);
   return 0;
 }
 
-static int lua_log_warn(lua_State* lua) {
+static gint lua_log_warn(lua_State* lua) {
   const gchar* message = luaL_checkstring(lua, 1);
   WARN("%s", message);
   return 0;
 }
 
-static int lua_log_error(lua_State* lua) {
+static gint lua_log_error(lua_State* lua) {
   const gchar* message = luaL_checkstring(lua, 1);
   ERROR("%s", message);
   return 0;
 }
 
-static int lua_log_fatal(lua_State* lua) {
+static gint lua_log_fatal(lua_State* lua) {
   const gchar* message = luaL_checkstring(lua, 1);
   FATAL("%s", message);
   return 0;

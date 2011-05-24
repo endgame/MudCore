@@ -76,13 +76,13 @@ void io_mainloop(gint server,
     gettimeofday(&start, NULL);
 
     lua_timer_execute(&start);
-    descriptor_remove_closed();
 
+    descriptor_remove_closed();
     g_array_set_size(pollitems, 0);
     g_array_append_vals(pollitems, items, sizeof(items) / sizeof(items[0]));
     descriptor_add_pollitems(pollitems);
 
-    /* Poll & process. */
+    /* Poll & process sockets. */
     gint poll_count = zmq_poll((zmq_pollitem_t*)pollitems->data,
                                pollitems->len,
                                pulse_length);
@@ -98,37 +98,20 @@ void io_mainloop(gint server,
     struct timeval now;
     gettimeofday(&now, NULL);
 
-    /* Count and execute any missed ticks. */
-    struct timeval delta = now;
-    timeval_sub(&delta, &start);
-    const struct timeval pulse = {
-      .tv_sec = 0,
-      .tv_usec = pulse_length
-    };
-    gint missed_ticks = 0;
-    while (timeval_compare(&delta, &pulse) > 1) {
-      timeval_sub(&delta, &pulse);
-      missed_ticks++;
-    }
-    if (missed_ticks > 0) WARN("Missed %d ticks.", missed_ticks);
-    for (gint i = 0; i < missed_ticks; i++) descriptor_handle_commands();
-
     descriptor_handle_commands();
     descriptor_send_prompts();
 
-    /* Sleep out remaining time if we have any to spare. */
-    if (missed_ticks == 0) {
-      struct timeval remain = pulse;
-      timeval_sub(&remain, &delta);
-      struct timespec to_sleep = {
-        .tv_sec = remain.tv_sec,
-        .tv_nsec = remain.tv_usec * 1000
-      };
+    /* Sleep out remaining time on this pulse. */
+    struct timeval remain = pulse;
+    timeval_sub(&remain, &delta);
+    struct timespec to_sleep = {
+      .tv_sec = remain.tv_sec,
+      .tv_nsec = remain.tv_usec * 1000
+    };
 
-      while (nanosleep(&to_sleep, &to_sleep) == -1) {
-        if (errno == EINTR) continue;
-        break;
-      }
+    while (nanosleep(&to_sleep, &to_sleep) == -1) {
+      if (errno == EINTR) continue;
+      break;
     }
   }
 

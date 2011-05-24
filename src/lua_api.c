@@ -10,6 +10,7 @@
 #include "lua_args.h"
 #include "lua_descriptor.h"
 #include "lua_log.h"
+#include "lua_timer.h"
 #include "lua_zmq.h"
 
 static lua_State* lua = NULL;
@@ -36,11 +37,13 @@ void lua_api_init(gpointer zmq_pub_socket, gint argc, gchar* argv[]) {
   lua_args_init(lua, argc, argv);
   lua_descriptor_init(lua);
   lua_log_init(lua);
+  lua_timer_init(lua);
   lua_zmq_init(lua, zmq_pub_socket);
 }
 
 void lua_api_deinit(void) {
   lua_close(lua);
+  lua_timer_deinit();
   lua = NULL;
 }
 

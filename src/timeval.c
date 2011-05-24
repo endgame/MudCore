@@ -9,6 +9,14 @@ struct timeval* timeval_add(struct timeval* t1, const struct timeval* t2) {
   return t1;
 }
 
+struct timeval* timeval_add_delay(struct timeval* t, gdouble delay) {
+  gint sec = delay;
+  gint usec = (delay - sec) * 1000000;
+  t->tv_sec += sec + (t->tv_usec + usec) / 1000000;
+  t->tv_usec =(t->tv_usec + usec) % 1000000;
+  return t;
+}
+
 gint timeval_compare(const struct timeval* t1, const struct timeval* t2) {
   if (t1->tv_sec < t2->tv_sec) return -1;
   if (t1->tv_sec > t2->tv_sec) return 1;

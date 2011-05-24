@@ -3,25 +3,11 @@ Need mud.shutdown() function.
 Descriptors:
 Append '\n' before sending out stuff from a prompt?
 
-Timers:
-Remove pulse rate, since commands proceed in lockstep anyway?
-
 All lines are processed asap. When a player thread yields for the next
 line, an optional parameter sets the minimum delay before a line can
 be sent.
 
-Lua API (timers):
-
-mud.timer.register(delay, callback) registers a timer that calls
-callback (a function of no arguments) after no less than delay
-milliseconds. It returns a token which can be passed to
-mud.timer.cancel. If callback returns a nonnegative value, it is
-rescheduled for that number of milliseconds into the future. If
-callback returns nil, the timer is cancelled.
-
-mud.timer.cancel(token) removes a timer.
-
-ZMQ_API:
+Lua API(zmq):
 
 mud.zmq.send(endpoint, msg, callback) creates a ZMQ_REQ socket,
 connects it to ENDPOINT, sends MSG and polls it (as part of the normal
@@ -29,4 +15,12 @@ event loop) until a reply is received. When this happens, it calls
 CALLBACK (a unary function) and closes the socket.
 
 TODO:
+- Add types to FD, timer ID
 - telnet linemode
+- remove "missed tick" logic - timers are handled once per pass, anyway
+
+- Move zmq api to a callback-focussed setup: there's no reason for
+  there to be one privileged rep/pub socket:
+
+  foo = mud.zmq.socket('req')
+  foo.send(bar, function (response) end)

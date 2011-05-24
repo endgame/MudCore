@@ -26,6 +26,7 @@ mudcore_TEXINFOS = \
 	mud.args.texi \
 	mud.descriptor.texi \
 	mud.log.texi \
+	mud.timer.texi \
 	mud.zmq.texi
 
 arg_parse.h.texi:      $(top_srcdir)/src/arg_parse.h;      $(GENERATE_TEXI)

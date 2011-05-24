@@ -8,6 +8,7 @@
 
 #include "descriptor.h"
 #include "log.h"
+#include "lua_timer.h"
 #include "lua_zmq.h"
 #include "options.h"
 #include "socket.h"
@@ -50,12 +51,6 @@ static void io_handle_servers(zmq_pollitem_t* server_item,
   }
 }
 
-/* Handle one tick of the server. */
-static void io_tick(void) {
-  descriptor_handle_commands();
-  // TODO: check/call/expire/timers.
-}
-
 void io_mainloop(gint server,
                  gpointer zmq_rep_socket) {
   INFO("Entering main loop.");
@@ -77,9 +72,10 @@ void io_mainloop(gint server,
 
   const gint pulse_length = options_pulse_length();
   while (TRUE) {
-    struct timeval poll_start;
-    gettimeofday(&poll_start, NULL);
+    struct timeval start;
+    gettimeofday(&start, NULL);
 
+    lua_timer_execute(&start);
     descriptor_remove_closed();
 
     g_array_set_size(pollitems, 0);
@@ -99,12 +95,12 @@ void io_mainloop(gint server,
                       &poll_count);
     descriptor_handle_pollitems(pollitems, poll_count);
 
-    struct timeval poll_end;
-    gettimeofday(&poll_end, NULL);
+    struct timeval now;
+    gettimeofday(&now, NULL);
 
     /* Count and execute any missed ticks. */
-    struct timeval delta = poll_end;
-    timeval_sub(&delta, &poll_start);
+    struct timeval delta = now;
+    timeval_sub(&delta, &start);
     const struct timeval pulse = {
       .tv_sec = 0,
       .tv_usec = pulse_length
@@ -115,9 +111,9 @@ void io_mainloop(gint server,
       missed_ticks++;
     }
     if (missed_ticks > 0) WARN("Missed %d ticks.", missed_ticks);
-    for (gint i = 0; i < missed_ticks; i++) io_tick();
+    for (gint i = 0; i < missed_ticks; i++) descriptor_handle_commands();
 
-    io_tick();
+    descriptor_handle_commands();
     descriptor_send_prompts();
 
     /* Sleep out remaining time if we have any to spare. */

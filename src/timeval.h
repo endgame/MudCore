@@ -19,6 +19,15 @@
 struct timeval* timeval_add(struct timeval* t1, const struct timeval* t2);
 
 /**
+ ** @deftypefun {struct timeval*} timeval_add_delay @
+ **   (struct timeval* @var{t},                     @
+ **    gdouble         @var{delay})
+ ** Add @var{delay} (specified in seconds), to @var{t} and return it.
+ ** @end deftypefun
+ **/
+struct timeval* timeval_add_delay(struct timeval* t, gdouble delay);
+
+/**
  ** @deftypefun gint timeval_compare   @
  **   (const struct timeval* @var{t1}, @
  **    const struct timeval* @var{t2})

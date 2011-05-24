@@ -81,12 +81,14 @@ accessed through the global @code{mud} table.
 * mud.args::                    Access the command-line arguments.
 * mud.descriptor::              Socket (descriptor) operations.
 * mud.log::                     Logging facility.
+* mud.timer::                   Set functions to be called in the future.
 * mud.zmq::                     Communicate with external programs using ZeroMQ.
 @end menu
 
 @include mud.args.texi
 @include mud.descriptor.texi
 @include mud.log.texi
+@include mud.timer.texi
 @include mud.zmq.texi
 
 @node C API Reference

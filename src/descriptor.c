@@ -24,10 +24,10 @@ static GHashTable* /* of int -> struct descriptor* */ descriptors;
 
 /* Iterate through the descriptor table. Iter names the iterator,
    Value the descriptor pointer. */
-#define DESCRIPTOR_FOREACH(Iter, Value)                 \
-  GHashTableIter Iter;                                  \
-  g_hash_table_iter_init(&Iter, descriptors);           \
-  struct descriptor* Value;                             \
+#define DESCRIPTOR_FOREACH(Iter, Value)                                 \
+  GHashTableIter Iter;                                                  \
+  g_hash_table_iter_init(&Iter, descriptors);                           \
+  struct descriptor* Value;                                             \
   while (g_hash_table_iter_next(&Iter, NULL, (gpointer*)&Value))
 
 /* Close and deallocate a descriptor. */

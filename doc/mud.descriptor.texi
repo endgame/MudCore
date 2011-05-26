@@ -9,7 +9,8 @@ number.
 @defun mud.descriptor.close (@var{fd})
 Put a descriptor into the @emph{draining} state; no new input can be
 received and the descriptor will close after all pending output has been
-sent.
+sent. Although a number internally, the FD given to Lua code is a
+userdatum. Arbitrary numbers are not accepted by other functions.
 @end defun
 
 @defun mud.descriptor.on_close (@var{fd})

@@ -10,11 +10,13 @@
 #include "lua_api.h"
 #include "timeval.h"
 
+#define FD_TYPE "mudcore.fd"
+
 /* If the value at index is an integer and that integer is an active
    client FD, return its descriptor. Otherwise, return NULL. Signal a
    Lua error if the value at index is not an integer. */
 static struct descriptor* lua_descriptor_get(lua_State* lua, gint index) {
-  gint fd = luaL_checkint(lua, index);
+  gint fd = *(gint*)luaL_checkudata(lua, index, FD_TYPE);
   return descriptor_get(fd);
 }
 
@@ -89,6 +91,9 @@ void lua_descriptor_init(lua_State* lua) {
 
   lua_setfield(lua, -2, "descriptor");
   lua_pop(lua, 1);
+
+  luaL_newmetatable(lua, FD_TYPE);
+  lua_pop(lua, 1);
 }
 
 void lua_descriptor_start(struct descriptor* descriptor) {
@@ -102,7 +107,11 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_remove(thread, -2);
   lua_getfield(thread, -1, "on_open");
   lua_remove(thread, -2);
-  lua_pushinteger(thread, descriptor->fd);
+
+  gint* fd = lua_newuserdata(thread, sizeof(*fd));
+  *fd = descriptor->fd;
+  luaL_getmetatable(thread, FD_TYPE);
+  lua_setmetatable(thread, -2);
   lua_descriptor_resume(descriptor, NULL);
 }
 

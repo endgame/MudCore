@@ -56,8 +56,8 @@ void lua_api_init(gpointer zmq_pub_socket, gint argc, gchar* argv[]) {
 }
 
 void lua_api_deinit(void) {
-  lua_close(lua);
   lua_timer_deinit();
+  lua_close(lua);
   lua = NULL;
 }
 

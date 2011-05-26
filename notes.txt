@@ -9,7 +9,6 @@ event loop) until a reply is received. When this happens, it calls
 CALLBACK (a unary function) and closes the socket.
 
 TODO:
-- Add types to timer ID
 - telnet linemode
 
 - Move zmq api to a callback-focussed setup: there's no reason for

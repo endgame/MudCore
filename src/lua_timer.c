@@ -9,6 +9,8 @@
 #include "lua_api.h"
 #include "timeval.h"
 
+#define TIMER_TYPE "mudcore.timer"
+
 struct timer_entry {
   gint func; /* Ref from luaL_ref. */
   struct timeval time;
@@ -31,7 +33,7 @@ static GHashTable* /* of gint (ref to func) -> struct timer_entry* */ timers;
   while (g_hash_table_iter_next(&Iter, NULL, (gpointer*)&Value))
 
 static gint lua_timer_cancel(lua_State* lua) {
-  gint token = luaL_checkint(lua, 1);
+  gint token = *(gint*)luaL_checkudata(lua, 1, TIMER_TYPE);
   g_hash_table_remove(timers, GINT_TO_POINTER(token));
   return 0;
 }
@@ -42,7 +44,11 @@ static gint lua_timer_new(lua_State* lua) {
   timeval_add_delay(&t->time, luaL_checknumber(lua, 1));
   t->func = luaL_ref(lua, LUA_REGISTRYINDEX);
   g_hash_table_insert(timers, GINT_TO_POINTER(t->func), t);
-  lua_pushinteger(lua, t->func);
+
+  gint* token = lua_newuserdata(lua, sizeof(*token)) ;
+  *token = t->func;
+  luaL_getmetatable(lua, TIMER_TYPE);
+  lua_setmetatable(lua, -2);
   return 1;
 }
 
@@ -62,6 +68,9 @@ void lua_timer_init(lua_State* lua) {
   };
   luaL_register(lua, NULL, timer_funcs);
   lua_setfield(lua, -2, "timer");
+  lua_pop(lua, 1);
+
+  luaL_newmetatable(lua, TIMER_TYPE);
   lua_pop(lua, 1);
 }
 

@@ -24,7 +24,10 @@ threads. If you don't, clients will be dropped.
 @end defun
 
 @defun mud.descriptor.read ()
-Pause this thread until the next input line is available.
+@defunx mud.descriptor.read (@var{delay})
+Pause this thread until the next input line is available. If called with
+the optional @var{delay} parameter, the next command won't be read until
+@var{delay} seconds have passed.
 @end defun
 
 @defun mud.descriptor.send (@var{fd}, @var{str})

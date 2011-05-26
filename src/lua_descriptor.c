@@ -8,6 +8,7 @@
 #include "descriptor.h"
 #include "log.h"
 #include "lua_api.h"
+#include "timeval.h"
 
 /* If the value at index is an integer and that integer is an active
    client FD, return its descriptor. Otherwise, return NULL. Signal a
@@ -34,7 +35,10 @@ static gint lua_descriptor_on_open(lua_State* lua) {
 }
 
 static gint lua_descriptor_read(lua_State* lua) {
-  // TODO: add input delay support.
+  if (lua_gettop(lua) == 1 && luaL_checknumber(lua, 1)) {
+    lua_pushvalue(lua, -1);
+    return lua_yield(lua, 1);
+  }
   return lua_yield(lua, 0);
 }
 
@@ -120,7 +124,15 @@ void lua_descriptor_resume(struct descriptor* descriptor,
       descriptor_drain(descriptor);
       return;
     case LUA_YIELD:
-      // TODO: Handle nextcommand delay.
+      if (lua_gettop(thread) == 1
+          && lua_isnumber(thread, 1)) {
+        lua_Number delay = lua_tonumber(thread, 1);
+        if (delay > 0) {
+          gettimeofday(&descriptor->next_command, NULL);
+          timeval_add_delay(&descriptor->next_command, delay);
+        }
+      }
+      lua_settop(thread, 0);
       break;
     default: /* Error. */
       ERROR("Error in lua code: %s", lua_tostring(thread, -1));

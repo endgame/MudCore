@@ -96,7 +96,7 @@ void io_mainloop(gint server,
                                      1),
                       &poll_count);
     descriptor_handle_pollitems(pollitems, poll_count);
-    descriptor_handle_commands();
+    descriptor_handle_commands(&start);
     descriptor_send_prompts();
 
     /* Sleep out remaining time on this pulse. */

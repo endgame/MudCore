@@ -32,7 +32,7 @@ struct timeval* timeval_sub(struct timeval* t1, const struct timeval* t2) {
   } else {
     t1->tv_sec -= t2->tv_sec;
     if (t1->tv_usec < t2->tv_usec) {
-      t1->tv_usec = t2->tv_usec - t1->tv_usec;
+      t1->tv_usec = t1->tv_usec - t2->tv_usec + 1000000;
       t1->tv_sec--;
     } else {
       t1->tv_usec -= t2->tv_usec;

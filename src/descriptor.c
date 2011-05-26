@@ -13,6 +13,7 @@
 #include "lua_descriptor.h"
 #include "queue.h"
 #include "socket.h"
+#include "timeval.h"
 
 #define COMMAND_QUEUE_SIZE 10
 #define LINE_BUFFER_SIZE 512
@@ -237,6 +238,8 @@ void descriptor_new_fd(gint fd) {
   descriptor->skip_until_newline = FALSE;
   descriptor->needs_prompt = TRUE;
   descriptor->will_echo = FALSE;
+  descriptor->next_command.tv_sec = 0;
+  descriptor->next_command.tv_usec = 0;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
   descriptor->output_buffer = buffer_new(OUTPUT_BUFFER_SIZE);
   descriptor->command_queue = queue_new(COMMAND_QUEUE_SIZE);
@@ -294,11 +297,11 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
   }
 }
 
-void descriptor_handle_commands(void) {
+void descriptor_handle_commands(const struct timeval* start) {
   DESCRIPTOR_FOREACH(iter, descriptor) {
-    // TODO: Check that nextcommand delay has passed.
     if (descriptor->state == DESCRIPTOR_STATE_OPEN
-        && descriptor->command_queue->used > 0) {
+        && descriptor->command_queue->used > 0
+        && timeval_compare(start, &descriptor->next_command) > 0) {
       descriptor->needs_prompt = TRUE;
       gchar* command = queue_pop_front(descriptor->command_queue);
       lua_descriptor_resume(descriptor, command);

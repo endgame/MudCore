@@ -1,10 +1,6 @@
 Descriptors:
 Append '\n' before sending out stuff from a prompt?
 
-All lines are processed asap. When a player thread yields for the next
-line, an optional parameter sets the minimum delay before a line can
-be sent.
-
 Lua API(zmq):
 
 mud.zmq.send(endpoint, msg, callback) creates a ZMQ_REQ socket,

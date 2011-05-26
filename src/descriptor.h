@@ -12,6 +12,7 @@
 
 #include <glib.h>
 #include <libtelnet.h>
+#include <sys/time.h>
 #include <zmq.h>
 
 struct buffer;
@@ -72,6 +73,10 @@ enum descriptor_state {
  ** password input work correctly. User code should echo what is deems
  ** necessary.
  ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} {struct timeval} next_command
+ ** If non-zero, the next command will not be processed until after
+ ** this time.
+ ** @end deftypeivar
  ** @deftypeivar {struct descriptor} {struct buffer*} line_buffer
  ** Buffer for the current line under assembly.
  ** @end deftypeivar
@@ -93,6 +98,7 @@ struct descriptor {
   gboolean skip_until_newline;
   gboolean needs_prompt;
   gboolean will_echo;
+  struct timeval next_command;
   struct buffer* line_buffer;
   struct buffer* output_buffer;
   struct queue* command_queue;
@@ -150,11 +156,12 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
 
 /**
  ** @deftypefun void descriptor_handle_commands @
- **   (void)
- ** Process one command on all descriptors that have pending commands.
+ **   (struct timeval* @var{start})
+ ** Process one command on all descriptors that have pending commands
+ ** and are not waiting for the next_command delay to expire.
  ** @end deftypefun
  **/
-void descriptor_handle_commands(void);
+void descriptor_handle_commands(const struct timeval* start);
 
 /**
  ** @deftypefun void descriptor_send_prompt @

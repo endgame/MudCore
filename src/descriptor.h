@@ -70,6 +70,10 @@ enum descriptor_state {
  ** After output has beend sent to the descriptor, it will need to
  ** send a fresh prompt.
  ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} gboolean needs_newline
+ ** A newline needs to be sent before fresh output if a complete
+ ** command wasn't entered.
+ ** @end deftypeivar
  ** @deftypeivar {struct descriptor} gboolean will_echo
  ** Tracks whether or not the descriptor is doing local echo. Note
  ** that echoing doesn't happen automatically, so that things like
@@ -101,6 +105,7 @@ struct descriptor {
   gint thread_ref;
   gboolean skip_until_newline;
   gboolean needs_prompt;
+  gboolean needs_newline;
   gboolean will_echo;
   struct timeval next_command;
   struct buffer* line_buffer;

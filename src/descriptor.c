@@ -126,6 +126,7 @@ static void descriptor_handle_input(struct descriptor* descriptor,
   for (guint i = 0; i < len; i++) {
     if (data[i] == '\r') continue;
     if (data[i] == '\n') {
+      descriptor->needs_newline = FALSE;
       descriptor->skip_until_newline = FALSE;
       if (!queue_push_back_len(descriptor->command_queue,
                                descriptor->line_buffer->data,
@@ -202,6 +203,7 @@ static void descriptor_send_prompt(struct descriptor* descriptor) {
     descriptor_close(descriptor);
   }
   descriptor->needs_prompt = FALSE;
+  descriptor->needs_newline = TRUE;
   telnet_iac(descriptor->telnet, TELNET_GA);
 }
 
@@ -240,6 +242,7 @@ void descriptor_new_fd(gint fd) {
   descriptor->thread_ref = LUA_NOREF;
   descriptor->skip_until_newline = FALSE;
   descriptor->needs_prompt = TRUE;
+  descriptor->needs_newline = FALSE;
   descriptor->will_echo = FALSE;
   descriptor->next_command.tv_sec = 0;
   descriptor->next_command.tv_usec = 0;
@@ -327,6 +330,10 @@ struct descriptor* descriptor_get(gint fd) {
 }
 
 void descriptor_append(struct descriptor* descriptor, const gchar* msg) {
+  if (descriptor->needs_newline) {
+    telnet_send(descriptor->telnet, "\r\n", 2);
+    descriptor->needs_newline = FALSE;
+  }
   telnet_send(descriptor->telnet, msg, strlen(msg));
   descriptor->needs_prompt = TRUE;
 }

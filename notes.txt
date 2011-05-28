@@ -1,6 +1,3 @@
-Descriptors:
-Append '\n' before sending out stuff from a prompt?
-
 Lua API(zmq):
 
 mud.zmq.send(endpoint, msg, callback) creates a ZMQ_REQ socket,

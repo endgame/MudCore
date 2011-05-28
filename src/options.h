@@ -44,7 +44,7 @@ gchar* options_port(void);
 /**
  ** @deftypefun gint options_pulse_length @
  **   (void)
- ** Get the value of the @code{-pulse-length} flag.
+ ** Get the value of the @code{-pulse-length} option.
  ** @end deftypefun
  **/
 gint options_pulse_length(void);

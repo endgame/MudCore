@@ -112,6 +112,8 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   *fd = descriptor->fd;
   luaL_getmetatable(thread, FD_TYPE);
   lua_setmetatable(thread, -2);
+  lua_pushvalue(thread, -1);
+  descriptor->fd_ref = luaL_ref(thread, LUA_REGISTRYINDEX);
   lua_descriptor_resume(descriptor, NULL);
 }
 

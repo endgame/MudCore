@@ -35,7 +35,9 @@ static GHashTable* /* of int -> struct descriptor* */ descriptors;
 static void descriptor_destroy(gpointer user_data) {
   struct descriptor* descriptor = user_data;
   descriptor_close(descriptor);
-  luaL_unref(lua_api_get(), LUA_REGISTRYINDEX, descriptor->thread_ref);
+  lua_State* lua = lua_api_get();
+  luaL_unref(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
+  luaL_unref(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
   telnet_free(descriptor->telnet);
   buffer_free(descriptor->line_buffer);
   buffer_free(descriptor->output_buffer);
@@ -192,7 +194,7 @@ static void descriptor_send_prompt(struct descriptor* descriptor) {
   lua_remove(lua, -2);
   lua_getfield(lua, -1, "send_prompt");
   lua_remove(lua, -2);
-  lua_pushinteger(lua, descriptor->fd);
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
   if (lua_pcall(lua, 1, 0, 0) != 0) {
     const gchar* what = lua_tostring(lua, -1);
     ERROR("Error in mud.descriptor.send_prompt: %s", what);
@@ -234,6 +236,7 @@ void descriptor_new_fd(gint fd) {
     return;
   }
 
+  descriptor->fd_ref = LUA_NOREF;
   descriptor->thread_ref = LUA_NOREF;
   descriptor->skip_until_newline = FALSE;
   descriptor->needs_prompt = TRUE;

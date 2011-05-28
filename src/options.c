@@ -13,12 +13,14 @@
 
 #define DEFAULT_PORT "5000"
 #define DEFAULT_PULSE_LENGTH 100000 /* in microseconds */
+#define DEFAULT_ZMQ_IO_THREADS 1
 #define DEFAULT_ZMQ_PUB_ENDPOINT "tcp://*:5001"
 #define DEFAULT_ZMQ_REP_ENDPOINT "tcp://*:5002"
 
 static gboolean file_logging = TRUE;
 static gchar* port = NULL;
 static gint pulse_length = DEFAULT_PULSE_LENGTH;
+static gint zmq_io_threads = DEFAULT_ZMQ_IO_THREADS;
 static gchar* zmq_pub_endpoint = NULL;
 static gchar* zmq_rep_endpoint = NULL;
 
@@ -38,7 +40,11 @@ static void options_on_flag(const gchar* flagname,
          "  -port=PORT                "
          " port for the main socket [" DEFAULT_PORT "]\n"
          "  -pulse-length=LENGTH      "
-         " length of each pulse in usec [" G_STRINGIFY(DEFAULT_PULSE_LENGTH) "]\n"
+         " length of each pulse in usec"
+         " [" G_STRINGIFY(DEFAULT_PULSE_LENGTH) "]\n"
+         "  -zmq-io-threads=INT       "
+         " number of I/O threads used by ZeroMQ"
+         " [" G_STRINGIFY(DEFAULT_ZMQ_IO_THREADS) "]\n"
          "  -zmq-pub-endpoint=ENDPOINT"
          " ZeroMQ endpoint for pub socket [" DEFAULT_ZMQ_PUB_ENDPOINT "]\n"
          "  -zmq-rep-endpoint=ENDPOINT"
@@ -72,6 +78,13 @@ static void options_on_option(const gchar* name,
     pulse_length = strtol(value, NULL, 10);
     if (errno != 0 || pulse_length >= 1000000) {
       fprintf(stderr, "Invalid number for -pulse-length: %s\n", value);
+      exit(EXIT_FAILURE);
+    }
+  } else if (strcmp(name, "zmq-io-threads") == 0) {
+    errno = 0;
+    zmq_io_threads = strtol(value, NULL, 10);
+    if (errno != 0 || zmq_io_threads < 0) {
+      fprintf(stderr, "Invalid number for -zmq-io-threads: %s\n", value);
       exit(EXIT_FAILURE);
     }
   } else if (strcmp(name, "zmq-pub-endpoint") == 0) {
@@ -111,6 +124,10 @@ gchar* options_port(void) {
 
 gint options_pulse_length(void) {
   return pulse_length;
+}
+
+gint options_zmq_io_threads(void) {
+  return zmq_io_threads;
 }
 
 gchar* options_zmq_pub_endpoint(void) {

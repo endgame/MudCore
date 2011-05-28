@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   signal(SIGPIPE, SIG_IGN);
 
   DEBUG("Creating ZeroMQ context.");
-  gpointer zmq_context = zmq_init(1);
+  gpointer zmq_context = zmq_init(options_zmq_io_threads());
   if (zmq_context == NULL) {
     PERROR("main(zmq_init)");
     error = 1;

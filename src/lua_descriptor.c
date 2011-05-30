@@ -88,7 +88,6 @@ void lua_descriptor_init(lua_State* lua) {
     { NULL         , NULL                       }
   };
   luaL_register(lua, NULL, descriptor_funcs);
-
   lua_setfield(lua, -2, "descriptor");
   lua_pop(lua, 1);
 

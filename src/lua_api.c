@@ -38,7 +38,7 @@ static gint lua_shutdown(lua_State* lua) {
   return 0;
 }
 
-void lua_api_init(gpointer zmq_pub_socket, gint argc, gchar* argv[]) {
+void lua_api_init(gpointer zmq_context, gint argc, gchar* argv[]) {
   lua = lua_newstate(lua_glib_alloc, NULL);
   luaL_openlibs(lua);
   lua_newtable(lua);
@@ -52,7 +52,7 @@ void lua_api_init(gpointer zmq_pub_socket, gint argc, gchar* argv[]) {
   lua_descriptor_init(lua);
   lua_log_init(lua);
   lua_timer_init(lua);
-  lua_zmq_init(lua, zmq_pub_socket);
+  lua_zmq_init(lua, zmq_context);
 }
 
 void lua_api_deinit(void) {

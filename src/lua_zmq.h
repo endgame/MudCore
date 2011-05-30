@@ -12,26 +12,12 @@
 /**
  ** @deftypefun void lua_zmq_init @
  **   (lua_State* @var{lua},      @
- **    gpointer   @var{zmq_pub_socket})
+ **    gpointer   @var{zmq_context})
  ** Add the @code{mud.zmq} api to @var{lua}
- ** (@pxref{mud.zmq}). @code{zmq_pub_socket} is a @code{ZMQ_PUB}
- ** socket that is used for @code{mud.zmq.publish}.
+ ** (@pxref{mud.zmq}). @code{zmq_context} is the ZeroMQ context used
+ ** by all operations.
  ** @end deftypefun
  **/
-void lua_zmq_init(lua_State* lua, gpointer zmq_pub_socket);
-
-/**
- ** @deftypefun void lua_zmq_on_request @
- **   (gpointer     @var{socket},       @
- **    const gchar* @var{message},      @
- **    gint         @var{length})
- **
- ** Call @code{mud.zmq.on_request} (@pxref{mud.zmq}) with
- ** @var{message}. The value returned from lua, is sent on the socket.
- ** string. If @code{mud.zmq.on_request} is not defined fails with an
- ** error, send an empty message on @var{socket}.
- ** @end deftypefun
- **/
-void lua_zmq_on_request(gpointer socket, const gchar* message, gint length);
+void lua_zmq_init(lua_State* lua, gpointer zmq_context);
 
 #endif

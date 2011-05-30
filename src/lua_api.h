@@ -10,9 +10,9 @@
 #include <lua.h>
 
 /**
- ** @deftypefun void lua_api_init     @
- **   (gpointer @var{zmq_pub_socket}, @
- **    gint     @var{argc},           @
+ ** @deftypefun void lua_api_init  @
+ **   (gpointer @var{zmq_context}, @
+ **    gint     @var{argc},        @
  **    gchar*   @var{argv}[])
  ** Construct a @code{lua_State*} (that is accessible using
  ** @code{lua_api_get()} that:
@@ -23,7 +23,7 @@
  ** @end itemize
  ** @end deftypefun
  **/
-void lua_api_init(gpointer zmq_pub_socket, gint argc, gchar* argv[]);
+void lua_api_init(gpointer zmq_context, gint argc, gchar* argv[]);
 
 /**
  ** @deftypefun void lua_api_deinit @

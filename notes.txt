@@ -1,15 +1,25 @@
 Lua API(zmq):
 
-mud.zmq.send(endpoint, msg, callback) creates a ZMQ_REQ socket,
-connects it to ENDPOINT, sends MSG and polls it (as part of the normal
-event loop) until a reply is received. When this happens, it calls
-CALLBACK (a unary function) and closes the socket.
+- constants: mud.zmq.CONTANT_NAME <=> ZMQ_CONSTANT_NAME
+- mud.zmq.version()
+- mud.zmq.socket(type) returns mudcore.zmq_socket
+- s:close()
+- s:watch(in=func(s), out=func(s))
+- s:setopt(opt, val)
+- s:getopt(opt)
+- s:bind(addr)
+- s:connect(addr)
+- s:send(str)
+- s:send(str,flags)
+- s:recv()
+- s:recv(flags)
+
+return values, where an error can happen are status, msg. for s:recv,
+return msg, errmsg. errmsg is non-nil iff msg is nil.
 
 TODO:
+- OO interface for descriptors
+- OO interface for timers
 - telnet linemode
-
-- Move zmq api to a callback-focussed setup: there's no reason for
-  there to be one privileged rep/pub socket:
-
-  foo = mud.zmq.socket('req')
-  foo.send(bar, function (response) end)
+- OSX port
+- W32 port

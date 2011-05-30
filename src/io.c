@@ -16,10 +16,10 @@
 
 static gboolean shutdown = FALSE;
 
-/* Process any revents on the server fd and the ZMQ_REP socket. */
-static void io_handle_servers(zmq_pollitem_t* server_item,
-                              zmq_pollitem_t* zmq_rep_item,
-                              gint* pollitems) {
+/* Process any revents on the server fd. Adjust *pollitems if
+   necessary. */
+static void io_handle_server(zmq_pollitem_t* server_item,
+                             gint* pollitems) {
   if (server_item->revents != 0) {
     if (server_item->revents & ZMQ_POLLERR) {
       FATAL("Server socket in error state!");
@@ -34,42 +34,18 @@ static void io_handle_servers(zmq_pollitem_t* server_item,
     }
     (*pollitems)--;
   }
-
-  if (zmq_rep_item->revents != 0) {
-    zmq_msg_t msg;
-    zmq_msg_init(&msg);
-    gint rc = zmq_recv(zmq_rep_item->socket, &msg, ZMQ_NOBLOCK);
-    if (rc == -1) {
-      if (errno == EAGAIN) return; /* No message? No problem. */
-      PERROR("io_handle_servers(zmq_recv)");
-      return;
-    }
-
-    lua_zmq_on_request(zmq_rep_item->socket,
-                       zmq_msg_data(&msg),
-                       zmq_msg_size(&msg));
-    zmq_msg_close(&msg);
-    (*pollitems)--;
-  }
 }
 
 void io_mainloop(gint server,
-                 gpointer zmq_rep_socket) {
+                 gpointer zmq_context) {
   INFO("Entering main loop.");
 
   GArray* pollitems = g_array_new(FALSE, FALSE, sizeof(zmq_pollitem_t));
-  const zmq_pollitem_t items[] = {
-    {
-      .socket = NULL,
-      .fd = server,
-      .events = ZMQ_POLLIN | ZMQ_POLLERR,
-      .revents = 0
-    }, {
-      .socket = zmq_rep_socket,
-      .fd = 0,
-      .events = ZMQ_POLLIN,
-      .revents = 0
-    }
+  const zmq_pollitem_t server_item = {
+    .socket = NULL,
+    .fd = server,
+    .events = ZMQ_POLLIN | ZMQ_POLLERR,
+    .revents = 0
   };
 
   const gint pulse_length = options_pulse_length();
@@ -81,20 +57,17 @@ void io_mainloop(gint server,
 
     descriptor_remove_closed();
     g_array_set_size(pollitems, 0);
-    g_array_append_vals(pollitems, items, sizeof(items) / sizeof(items[0]));
+    g_array_append_val(pollitems, server_item);
     descriptor_add_pollitems(pollitems);
 
     /* Poll & process sockets. */
     gint poll_count = zmq_poll((zmq_pollitem_t*)pollitems->data,
                                pollitems->len,
                                pulse_length);
-    io_handle_servers(&g_array_index(pollitems,
-                                     zmq_pollitem_t,
-                                     0),
-                      &g_array_index(pollitems,
-                                     zmq_pollitem_t,
-                                     1),
-                      &poll_count);
+    io_handle_server(&g_array_index(pollitems,
+                                    zmq_pollitem_t,
+                                    0),
+                     &poll_count);
     descriptor_handle_pollitems(pollitems, poll_count);
     descriptor_handle_commands(&start);
     descriptor_send_prompts();

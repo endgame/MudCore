@@ -5,4 +5,11 @@ The @code{mud.zmq} table has functions for commmunication with external
 programs, via the ZeroMQ messaging library. The server maintains an
 internal ZeroMQ context and user code can create sockets registered to
 that context. Lua code may also arrange to be notified when a socket's
-state changes (becomes readable or writeable).
+state changes (becomes readable or writeable). The interface is inspired
+by lua-zmq (@code{http://TODO}), but has been changed to integrate with
+mudcore's event loop.
+
+@defun mud.zmq.version ()
+Return a table @code{@{MAJOR, MINOR, PATCHLEVEL@}} corresponding to the
+ZeroMQ version.
+@end defun

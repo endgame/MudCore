@@ -32,9 +32,7 @@ static GHashTable* /* of gpointer (zmq socket) ->
 static void zmq_socket_destroy(gpointer s) {
   struct lua_zmq_socket* socket = s;
   lua_State* lua = lua_api_get();
-  if (zmq_close(socket->socket) == -1) {
-    WARN("zmq_socket_destroy(%p): not a socket.", socket->socket);
-  }
+  if (zmq_close(socket->socket) == -1) PWARN("zmq_socket_destroy(zmq_close)");
   luaL_unref(lua, LUA_REGISTRYINDEX, socket->in_watcher);
   luaL_unref(lua, LUA_REGISTRYINDEX, socket->out_watcher);
 }

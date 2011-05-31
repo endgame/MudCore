@@ -29,3 +29,7 @@ constants:
 Return a table @code{@{MAJOR, MINOR, PATCHLEVEL@}} corresponding to the
 ZeroMQ version.
 @end defun
+
+@defmethod mudcore.zmq_socket close ()
+Close the socket.
+@end defmethod

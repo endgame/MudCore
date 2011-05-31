@@ -37,6 +37,15 @@ static void zmq_socket_destroy(gpointer s) {
   luaL_unref(lua, LUA_REGISTRYINDEX, socket->out_watcher);
 }
 
+static gint lua_zmq_close(lua_State* lua) {
+  /* Even though this might fire twice (socket:close(), followed by
+     __gc()), it's OK because the destructor code is executed once
+     (when it's removed by the hashtable's DestroyNotify callback). */
+  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  g_hash_table_remove(sockets, socket->socket);
+  return 0;
+}
+
 static gint lua_zmq_socket(lua_State* lua) {
   gint type = luaL_checkint(lua, 1);
   gpointer socket = zmq_socket(context, type);
@@ -116,7 +125,9 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   /* Set up the socket metatable. */
   luaL_newmetatable(lua, SOCKET_TYPE);
   static const luaL_Reg zmq_methods[] = {
-    { NULL, NULL }
+    { "__gc" , lua_zmq_close },
+    { "close", lua_zmq_close },
+    { NULL   , NULL          }
   };
   lua_newtable(lua);
   luaL_register(lua, NULL, zmq_methods);

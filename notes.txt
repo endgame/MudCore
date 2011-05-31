@@ -1,7 +1,6 @@
 Lua API(zmq):
 
 - constants: mud.zmq.CONTANT_NAME <=> ZMQ_CONSTANT_NAME
-- s:close()
 - s:watch(in=func(s), out=func(s))
 - s:setopt(opt, val)
 - s:getopt(opt)

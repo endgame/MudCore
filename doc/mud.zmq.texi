@@ -23,6 +23,9 @@ constants:
 @item @code{mud.zmq.PULL}
 @item @code{mud.zmq.PAIR}
 @end itemize
+
+The returned socket is a Lua userdatum with type
+@code{mudcore.zmq_socket}.
 @end defun
 
 @defun mud.zmq.version ()
@@ -36,4 +39,8 @@ Bind the socket to @var{endpoint}.
 
 @defmethod mudcore.zmq_socket close ()
 Close the socket.
+@end defmethod
+
+@defmethod mudcore.zmq_socket connect (@var{endpoint})
+Connect the socket to @var{endpoint}.
 @end defmethod

@@ -41,13 +41,7 @@ static void zmq_socket_destroy(gpointer s) {
 
 /* Raise an error with message MSG..": "..zmq_strerror(errno). */
 static gint lua_zmq_error(lua_State* lua, const gchar* msg) {
-  luaL_Buffer buf;
-  luaL_buffinit(lua, &buf);
-  luaL_addstring(&buf, msg);
-  luaL_addstring(&buf, ": ");
-  luaL_addstring(&buf, zmq_strerror(errno));
-  luaL_pushresult(&buf);
-  return lua_error(lua);
+  return luaL_error(lua, "%s: %s", msg, zmq_strerror(errno));
 }
 
 static gint lua_zmq_bind(lua_State* lua) {
@@ -65,6 +59,15 @@ static gint lua_zmq_close(lua_State* lua) {
      (when it's removed by the hashtable's DestroyNotify callback). */
   struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   g_hash_table_remove(sockets, socket->socket);
+  return 0;
+}
+
+static gint lua_zmq_connect(lua_State* lua) {
+  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  const gchar* endpoint = luaL_checkstring(lua, 2);
+  if (zmq_connect(socket->socket, endpoint) == -1) {
+    return lua_zmq_error(lua, "zmq_connect");
+  }
   return 0;
 }
 
@@ -142,10 +145,11 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   /* Set up the socket metatable. */
   luaL_newmetatable(lua, SOCKET_TYPE);
   static const luaL_Reg zmq_methods[] = {
-    { "__gc" , lua_zmq_close },
-    { "bind" , lua_zmq_bind  },
-    { "close", lua_zmq_close },
-    { NULL   , NULL          }
+    { "__gc"   , lua_zmq_close   },
+    { "bind"   , lua_zmq_bind    },
+    { "close"  , lua_zmq_close   },
+    { "connect", lua_zmq_connect },
+    { NULL     , NULL            }
   };
   lua_newtable(lua);
   luaL_register(lua, NULL, zmq_methods);

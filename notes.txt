@@ -4,7 +4,6 @@ Lua API(zmq):
 - s:watch(in=func(s), out=func(s))
 - s:setopt(opt, val)
 - s:getopt(opt)
-- s:bind(addr)
 - s:connect(addr)
 - s:send(str)
 - s:send(str,flags)
@@ -17,6 +16,7 @@ return msg, errmsg. errmsg is non-nil iff msg is nil.
 TODO:
 - OO interface for descriptors
 - OO interface for timers
+- Make zmq sockets not block shutdown.
 - telnet linemode
 - OSX port
 - W32 port

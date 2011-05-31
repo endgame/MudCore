@@ -29,12 +29,34 @@ static GHashTable* /* of gpointer (zmq socket) ->
   struct lua_zmq_socket* Value;                                         \
   while (g_hash_table_iter_next(&Iter, NULL, (gpointer*)&Value))
 
+/* GLib's callback to destroy a socket when it's removed from the hash
+   table. */
 static void zmq_socket_destroy(gpointer s) {
   struct lua_zmq_socket* socket = s;
   lua_State* lua = lua_api_get();
   if (zmq_close(socket->socket) == -1) PWARN("zmq_socket_destroy(zmq_close)");
   luaL_unref(lua, LUA_REGISTRYINDEX, socket->in_watcher);
   luaL_unref(lua, LUA_REGISTRYINDEX, socket->out_watcher);
+}
+
+/* Raise an error with message MSG..": "..zmq_strerror(errno). */
+static gint lua_zmq_error(lua_State* lua, const gchar* msg) {
+  luaL_Buffer buf;
+  luaL_buffinit(lua, &buf);
+  luaL_addstring(&buf, msg);
+  luaL_addstring(&buf, ": ");
+  luaL_addstring(&buf, zmq_strerror(errno));
+  luaL_pushresult(&buf);
+  return lua_error(lua);
+}
+
+static gint lua_zmq_bind(lua_State* lua) {
+  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  const gchar* endpoint = luaL_checkstring(lua, 2);
+  if (zmq_bind(socket->socket, endpoint) == -1) {
+    return lua_zmq_error(lua, "zmq_bind");
+  }
+  return 0;
 }
 
 static gint lua_zmq_close(lua_State* lua) {
@@ -50,12 +72,7 @@ static gint lua_zmq_socket(lua_State* lua) {
   gint type = luaL_checkint(lua, 1);
   gpointer socket = zmq_socket(context, type);
   if (socket == NULL) {
-    luaL_Buffer buf;
-    luaL_buffinit(lua, &buf);
-    luaL_addstring(&buf, "zmq_socket error: ");
-    luaL_addstring(&buf, zmq_strerror(errno));
-    luaL_pushresult(&buf);
-    lua_error(lua);
+    return lua_zmq_error(lua, "zmq_socket");
   }
   struct lua_zmq_socket* result = lua_newuserdata(lua, sizeof(*result));
   luaL_getmetatable(lua, SOCKET_TYPE);
@@ -126,6 +143,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   luaL_newmetatable(lua, SOCKET_TYPE);
   static const luaL_Reg zmq_methods[] = {
     { "__gc" , lua_zmq_close },
+    { "bind" , lua_zmq_bind  },
     { "close", lua_zmq_close },
     { NULL   , NULL          }
   };

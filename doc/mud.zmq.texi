@@ -30,6 +30,10 @@ Return a table @code{@{MAJOR, MINOR, PATCHLEVEL@}} corresponding to the
 ZeroMQ version.
 @end defun
 
+@defmethod mudcore.zmq_socket bind (@var{endpoint})
+Bind the socket to @var{endpoint}.
+@end defmethod
+
 @defmethod mudcore.zmq_socket close ()
 Close the socket.
 @end defmethod

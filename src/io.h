@@ -10,14 +10,12 @@
 #include <lua.h>
 
 /**
- ** @deftypefun void io_mainloop        @
- **   (gint       @var{server},         @
- **    gpointer   @var{zmq_context})
+ ** @deftypefun void io_mainloop @
+ **   (gint @var{server})
  ** Run the mud's main loop.
  ** @end deftypefun
  **/
-void io_mainloop(gint server,
-                 gpointer zmq_context);
+void io_mainloop(gint server);
 
 /**
  ** @deftypefun void io_shutdown @

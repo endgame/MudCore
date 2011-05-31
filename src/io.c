@@ -36,8 +36,7 @@ static void io_handle_server(zmq_pollitem_t* server_item,
   }
 }
 
-void io_mainloop(gint server,
-                 gpointer zmq_context) {
+void io_mainloop(gint server) {
   INFO("Entering main loop.");
 
   GArray* pollitems = g_array_new(FALSE, FALSE, sizeof(zmq_pollitem_t));

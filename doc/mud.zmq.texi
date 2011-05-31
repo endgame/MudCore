@@ -9,6 +9,22 @@ state changes (becomes readable or writeable). The interface is inspired
 by lua-zmq (@code{http://TODO}), but has been changed to integrate with
 mudcore's event loop.
 
+@defun mud.zmq.socket (@var{type})
+Create and return a ZeroMQ socket. @var{type} is one of the following
+constants:
+@itemize
+@item @code{mud.zmq.REQ}
+@item @code{mud.zmq.REP}
+@item @code{mud.zmq.DEALER}
+@item @code{mud.zmq.ROUTER}
+@item @code{mud.zmq.PUB}
+@item @code{mud.zmq.SUB}
+@item @code{mud.zmq.PUSH}
+@item @code{mud.zmq.PULL}
+@item @code{mud.zmq.PAIR}
+@end itemize
+@end defun
+
 @defun mud.zmq.version ()
 Return a table @code{@{MAJOR, MINOR, PATCHLEVEL@}} corresponding to the
 ZeroMQ version.

@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     goto err2;
   }
 
-  io_mainloop(socket, zmq_context);
+  io_mainloop(socket);
 
  err2:
   DEBUG("Closing server socket.");

@@ -57,6 +57,7 @@ void lua_api_init(gpointer zmq_context, gint argc, gchar* argv[]) {
 
 void lua_api_deinit(void) {
   lua_timer_deinit();
+  lua_zmq_deinit();
   lua_close(lua);
   lua = NULL;
 }

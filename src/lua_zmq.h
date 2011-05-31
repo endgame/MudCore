@@ -20,4 +20,6 @@
  **/
 void lua_zmq_init(lua_State* lua, gpointer zmq_context);
 
+void lua_zmq_deinit(void);
+
 #endif

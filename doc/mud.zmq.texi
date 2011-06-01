@@ -45,9 +45,18 @@ Close the socket.
 Connect the socket to @var{endpoint}.
 @end defmethod
 
+@defmethod mudcore.zmq_socket recv (@var{flags} = 0)
+Receive a message on the socket and return it as a string. @var{flags}
+is a combination of zero or more of the following flags:
+@itemize
+@item @code{ZMQ_NOBLOCK}
+@end itemize
+@end defmethod
+
 @defmethod mudcore.zmq_socket send (@var{msg}, @var{flags} = 0)
 Send @var{msg} (a string, or convertible to a string) on the
-socket. @var{flags} is a combination of the following flags:
+socket. @var{flags} is a combination of zero or more of the following
+flags:
 @itemize
 @item @code{mud.zmq.NOBLOCK}
 @item @code{mud.zmq.SNDMORE}

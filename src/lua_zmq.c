@@ -78,6 +78,20 @@ static gint lua_zmq_connect(lua_State* lua) {
   return 0;
 }
 
+static gint lua_zmq_recv(lua_State* lua) {
+  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gint flags = luaL_optint(lua, 2, 0);
+  zmq_msg_t msg;
+  zmq_msg_init(&msg);
+  if (zmq_recv(socket->socket, &msg, flags) == -1) {
+    zmq_msg_close(&msg);
+    return lua_zmq_error(lua, "zmq_recv");
+  }
+  lua_pushlstring(lua, zmq_msg_data(&msg), zmq_msg_size(&msg));
+  zmq_msg_close(&msg);
+  return 1;
+}
+
 static gint lua_zmq_send(lua_State* lua) {
   gsize len;
   struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
@@ -166,6 +180,8 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
 
   /* Send/receive flags. */
   DECLARE_CONST(NOBLOCK);
+
+  /* Send-only flags. */
   DECLARE_CONST(SNDMORE);
 
   lua_setfield(lua, -2, "zmq");
@@ -178,6 +194,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { "bind"   , lua_zmq_bind    },
     { "close"  , lua_zmq_close   },
     { "connect", lua_zmq_connect },
+    { "recv"   , lua_zmq_recv    },
     { "send"   , lua_zmq_send    },
     { NULL     , NULL            }
   };

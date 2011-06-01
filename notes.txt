@@ -4,8 +4,6 @@ Lua API(zmq):
 - s:watch(in=func(s), out=func(s))
 - s:setopt(opt, val)
 - s:getopt(opt)
-- s:recv()
-- s:recv(flags)
 
 return values, where an error can happen are status, msg. for s:recv,
 return msg, errmsg. errmsg is non-nil iff msg is nil.

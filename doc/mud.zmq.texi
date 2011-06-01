@@ -44,3 +44,12 @@ Close the socket.
 @defmethod mudcore.zmq_socket connect (@var{endpoint})
 Connect the socket to @var{endpoint}.
 @end defmethod
+
+@defmethod mudcore.zmq_socket send (@var{msg}, @var{flags} = 0)
+Send @var{msg} (a string, or convertible to a string) on the
+socket. @var{flags} is a combination of the following flags:
+@itemize
+@item @code{mud.zmq.NOBLOCK}
+@item @code{mud.zmq.SNDMORE}
+@end itemize
+@end defmethod

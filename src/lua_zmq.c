@@ -4,6 +4,7 @@
 #include "lua_zmq.h"
 
 #include <lauxlib.h>
+#include <string.h>
 #include <zmq.h>
 
 #include "log.h"
@@ -28,6 +29,12 @@ static GHashTable* /* of gpointer (zmq socket) ->
   g_hash_table_iter_init(&iter, sockets);                               \
   struct lua_zmq_socket* Value;                                         \
   while (g_hash_table_iter_next(&Iter, NULL, (gpointer*)&Value))
+
+/* Callback for ZeroMQ to free data. */
+static void zmq_g_free(gpointer data, gpointer hint) {
+  (void) hint; /* Not used. */
+  g_free(data);
+}
 
 /* GLib's callback to destroy a socket when it's removed from the hash
    table. */
@@ -67,6 +74,24 @@ static gint lua_zmq_connect(lua_State* lua) {
   const gchar* endpoint = luaL_checkstring(lua, 2);
   if (zmq_connect(socket->socket, endpoint) == -1) {
     return lua_zmq_error(lua, "zmq_connect");
+  }
+  return 0;
+}
+
+static gint lua_zmq_send(lua_State* lua) {
+  gsize len;
+  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  const gchar* str = luaL_checklstring(lua, 2, &len);
+  gint flags = luaL_optint(lua, 3, 0);
+  zmq_msg_t msg;
+  zmq_msg_init_data(&msg,
+                    memcpy(g_new(gchar, len), str, len),
+                    len,
+                    zmq_g_free,
+                    NULL);
+  if (zmq_send(socket->socket, &msg, flags) == -1) {
+    zmq_msg_close(&msg);
+    return lua_zmq_error(lua, "zmq_send");
   }
   return 0;
 }
@@ -139,6 +164,10 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   DECLARE_CONST(PULL);
   DECLARE_CONST(PAIR);
 
+  /* Send/receive flags. */
+  DECLARE_CONST(NOBLOCK);
+  DECLARE_CONST(SNDMORE);
+
   lua_setfield(lua, -2, "zmq");
   lua_pop(lua, 1);
 
@@ -149,6 +178,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { "bind"   , lua_zmq_bind    },
     { "close"  , lua_zmq_close   },
     { "connect", lua_zmq_connect },
+    { "send"   , lua_zmq_send    },
     { NULL     , NULL            }
   };
   lua_newtable(lua);

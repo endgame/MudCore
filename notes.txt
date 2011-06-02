@@ -1,8 +1,6 @@
 Lua API(zmq):
 
-- constants: mud.zmq.CONTANT_NAME <=> ZMQ_CONSTANT_NAME
 - s:watch(in=func(s), out=func(s))
-- s:setopt(opt, val)
 
 TODO:
 - OO interface for descriptors

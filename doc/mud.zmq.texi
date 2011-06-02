@@ -9,6 +9,9 @@ state changes (becomes readable or writeable). The interface is inspired
 by lua-zmq (@code{http://TODO}), but has been changed to integrate with
 mudcore's event loop.
 
+Constants defined in the ZeroMQ C API (@code{ZMQ_FOO}) are exposed as
+@code{mud.zmq.FOO}.
+
 @defun mud.zmq.socket (@var{type})
 Create and return a ZeroMQ socket. @var{type} is one of the following
 constants:
@@ -67,6 +70,8 @@ Look up a socket option. Valid options are:
 @item @code{mud.zmq.SWAP}
 @item @code{mud.zmq.TYPE}
 @end itemize
+See the man page for @code{zmq_getsockopt} for a list of option
+descriptions and what is returned for each.
 @end defmethod
 
 @defmethod mudcore.zmq_socket recv (@var{flags} = 0)
@@ -75,6 +80,30 @@ is a combination of zero or more of the following flags:
 @itemize
 @item @code{ZMQ_NOBLOCK}
 @end itemize
+@end defmethod
+
+@defmethod mudcore.zmq_socket setopt (@var{option}, @var{value})
+Set a socket option. Valid options are:
+@itemize
+@item @code{mud.zmq.AFFINITY}
+@item @code{mud.zmq.BACKLOG}
+@item @code{mud.zmq.HWM}
+@item @code{mud.zmq.IDENTITY}
+@item @code{mud.zmq.LINGER}
+@item @code{mud.zmq.MCAST_LOOP}
+@item @code{mud.zmq.RATE}
+@item @code{mud.zmq.RCVBUF}
+@item @code{mud.zmq.RECONNECT_IVL}
+@item @code{mud.zmq.RECONNECT_IVL_MAX}
+@item @code{mud.zmq.RECOVERY_IVL}
+@item @code{mud.zmq.RECOVERY_IVL_MSEC}
+@item @code{mud.zmq.SNDBUF}
+@item @code{mud.zmq.SWAP}
+@item @code{mud.zmq.SUBSCRIBE}
+@item @code{mud.zmq.UNSUBSCRIBE}
+@end itemize
+See the man page for @code{zmq_setsockopt} for a list of option
+descriptions and what parameter is expected for the option's value.
 @end defmethod
 
 @defmethod mudcore.zmq_socket send (@var{msg}, @var{flags} = 0)

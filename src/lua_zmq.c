@@ -11,6 +11,7 @@
 #include "lua_api.h"
 
 #define SOCKET_TYPE "mudcore.zmq_socket"
+#define ZMQ_IDENTITY_MAXLEN 255
 
 struct lua_zmq_socket {
   gpointer socket;
@@ -82,7 +83,7 @@ static gint lua_zmq_getopt(lua_State* lua) {
   struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint option = luaL_checkint(lua, 2);
   union {
-    gchar s[255]; /* ZMQ_IDENTITY max is 255, see man zmq_getsockopt(). */
+    gchar s[ZMQ_IDENTITY_MAXLEN];
     gint i;
     gint32 i32;
     gint64 i64;
@@ -141,8 +142,8 @@ static gint lua_zmq_recv(lua_State* lua) {
 }
 
 static gint lua_zmq_send(lua_State* lua) {
-  gsize len;
   struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gsize len;
   const gchar* str = luaL_checklstring(lua, 2, &len);
   gint flags = luaL_optint(lua, 3, 0);
   zmq_msg_t msg;
@@ -154,6 +155,61 @@ static gint lua_zmq_send(lua_State* lua) {
   if (zmq_send(socket->socket, &msg, flags) == -1) {
     zmq_msg_close(&msg);
     return lua_zmq_error(lua, "zmq_send");
+  }
+  return 0;
+}
+
+static gint lua_zmq_setopt(lua_State* lua) {
+  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gint option = luaL_checkint(lua, 2);
+  union {
+    gint i;
+    gint64 i64;
+    guint64 u64;
+  } optval;
+  const gchar* str = NULL;
+  gsize optsize;
+  switch (option) {
+  case ZMQ_AFFINITY:
+  case ZMQ_HWM:
+  case ZMQ_RCVBUF:
+  case ZMQ_SNDBUF:
+    optval.u64 = luaL_checkint(lua, 3);
+    optsize = sizeof(optval.u64);
+    break;
+  case ZMQ_MCAST_LOOP:
+  case ZMQ_RATE:
+  case ZMQ_RECOVERY_IVL:
+  case ZMQ_RECOVERY_IVL_MSEC:
+  case ZMQ_SWAP:
+    optval.i64 = luaL_checkint(lua, 3);
+    optsize = sizeof(optval.i64);
+    break;
+  case ZMQ_BACKLOG:
+  case ZMQ_LINGER:
+  case ZMQ_RECONNECT_IVL:
+  case ZMQ_RECONNECT_IVL_MAX:
+    optval.i = luaL_checkint(lua, 3);
+    optsize = sizeof(optval.i);
+    break;
+  case ZMQ_IDENTITY:
+  case ZMQ_SUBSCRIBE:
+  case ZMQ_UNSUBSCRIBE:
+    str = luaL_checklstring(lua, 3, &optsize);
+    break;
+  default:
+    return lua_zmq_error(lua, "Unknown (or unimplemented) option.");
+  }
+
+  gint rc;
+  if (str == NULL) {
+    rc = zmq_setsockopt(socket->socket, option, &optval, optsize);
+  } else {
+    rc = zmq_setsockopt(socket->socket, option, str, optsize);
+  }
+
+  if (rc == -1) {
+    return lua_zmq_error(lua, "zmq_setsockopt");
   }
   return 0;
 }
@@ -226,11 +282,15 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   DECLARE_CONST(PULL);
   DECLARE_CONST(PAIR);
 
-  /* Readable socket options. */
-  DECLARE_CONST(AFFINITY);
-  DECLARE_CONST(BACKLOG);
+  /* Gettable socket options. */
   DECLARE_CONST(EVENTS);
   DECLARE_CONST(FD);
+  DECLARE_CONST(RCVMORE);
+  DECLARE_CONST(TYPE);
+
+  /* Gettable/settable socket options. */
+  DECLARE_CONST(AFFINITY);
+  DECLARE_CONST(BACKLOG);
   DECLARE_CONST(HWM);
   DECLARE_CONST(IDENTITY);
   DECLARE_CONST(LINGER);
@@ -241,10 +301,12 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   DECLARE_CONST(RECONNECT_IVL_MAX);
   DECLARE_CONST(RECOVERY_IVL);
   DECLARE_CONST(RECOVERY_IVL_MSEC);
-  DECLARE_CONST(RCVMORE);
   DECLARE_CONST(SNDBUF);
   DECLARE_CONST(SWAP);
-  DECLARE_CONST(TYPE);
+
+  /* Settable socket options. */
+  DECLARE_CONST(SUBSCRIBE);
+  DECLARE_CONST(UNSUBSCRIBE);
 
   /* Send/receive flags. */
   DECLARE_CONST(NOBLOCK);
@@ -265,6 +327,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { "getopt" , lua_zmq_getopt  },
     { "recv"   , lua_zmq_recv    },
     { "send"   , lua_zmq_send    },
+    { "setopt" , lua_zmq_setopt  },
     { NULL     , NULL            }
   };
   lua_newtable(lua);

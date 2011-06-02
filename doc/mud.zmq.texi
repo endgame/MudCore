@@ -45,6 +45,30 @@ Close the socket.
 Connect the socket to @var{endpoint}.
 @end defmethod
 
+@defmethod mudcore.zmq_socket getopt (@var{option})
+Look up a socket option. Valid options are:
+@itemize
+@item @code{mud.zmq.AFFINITY}
+@item @code{mud.zmq.BACKLOG}
+@item @code{mud.zmq.EVENTS}
+@item @code{mud.zmq.FD}
+@item @code{mud.zmq.HWM}
+@item @code{mud.zmq.IDENTITY}
+@item @code{mud.zmq.LINGER}
+@item @code{mud.zmq.MCAST_LOOP}
+@item @code{mud.zmq.RATE}
+@item @code{mud.zmq.RCVBUF}
+@item @code{mud.zmq.RCVMORE}
+@item @code{mud.zmq.RECONNECT_IVL_MAX}
+@item @code{mud.zmq.RECONNECT_IVL}
+@item @code{mud.zmq.RECOVERY_IVL_MSEC}
+@item @code{mud.zmq.RECOVERY_IVL}
+@item @code{mud.zmq.SNDBUF}
+@item @code{mud.zmq.SWAP}
+@item @code{mud.zmq.TYPE}
+@end itemize
+@end defmethod
+
 @defmethod mudcore.zmq_socket recv (@var{flags} = 0)
 Receive a message on the socket and return it as a string. @var{flags}
 is a combination of zero or more of the following flags:

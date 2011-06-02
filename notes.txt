@@ -5,11 +5,7 @@ Lua API(zmq):
 - s:setopt(opt, val)
 - s:getopt(opt)
 
-return values, where an error can happen are status, msg. for s:recv,
-return msg, errmsg. errmsg is non-nil iff msg is nil.
-
 TODO:
-- Make zmq sockets not block shutdown.
 - OO interface for descriptors
 - OO interface for timers
 - telnet linemode

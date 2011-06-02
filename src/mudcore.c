@@ -11,6 +11,7 @@
 #include "io.h"
 #include "log.h"
 #include "lua_api.h"
+#include "lua_zmq.h"
 #include "options.h"
 #include "socket.h"
 
@@ -58,6 +59,9 @@ int main(int argc, char* argv[]) {
   socket_close(socket);
  err1:
   DEBUG("Terminating ZeroMQ context.");
+  /* This is separate from lua_api_deinit() to prevent zmq_term() from
+     blocking forever. */
+  lua_zmq_deinit();
   zmq_term(zmq_context);
  err0:
   DEBUG("Enabling SIGPIPE.");

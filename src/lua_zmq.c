@@ -60,9 +60,9 @@ static gint lua_zmq_error(lua_State* lua, const gchar* msg) {
 }
 
 static gint lua_zmq_bind(lua_State* lua) {
-  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   const gchar* endpoint = luaL_checkstring(lua, 2);
-  if (zmq_bind(*socket, endpoint) == -1) {
+  if (zmq_bind(socket, endpoint) == -1) {
     return lua_zmq_error(lua, "zmq_bind");
   }
   return 0;
@@ -88,16 +88,16 @@ static gint lua_zmq_close(lua_State* lua) {
 }
 
 static gint lua_zmq_connect(lua_State* lua) {
-  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   const gchar* endpoint = luaL_checkstring(lua, 2);
-  if (zmq_connect(*socket, endpoint) == -1) {
+  if (zmq_connect(socket, endpoint) == -1) {
     return lua_zmq_error(lua, "zmq_connect");
   }
   return 0;
 }
 
 static gint lua_zmq_getopt(lua_State* lua) {
-  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint option = luaL_checkint(lua, 2);
   union {
     gchar s[ZMQ_IDENTITY_MAXLEN];
@@ -107,7 +107,7 @@ static gint lua_zmq_getopt(lua_State* lua) {
     guint64 u64;
   } buf;
   gsize buf_size = sizeof(buf);
-  if (zmq_getsockopt(*socket, option, &buf, &buf_size) == -1) {
+  if (zmq_getsockopt(socket, option, &buf, &buf_size) == -1) {
     return lua_zmq_error(lua, "zmq_getsockopt");
   }
 
@@ -145,11 +145,11 @@ static gint lua_zmq_getopt(lua_State* lua) {
 }
 
 static gint lua_zmq_recv(lua_State* lua) {
-  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer socket = (gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint flags = luaL_optint(lua, 2, 0);
   zmq_msg_t msg;
   zmq_msg_init(&msg);
-  if (zmq_recv(*socket, &msg, flags) == -1) {
+  if (zmq_recv(socket, &msg, flags) == -1) {
     zmq_msg_close(&msg);
     return lua_zmq_error(lua, "zmq_recv");
   }
@@ -159,7 +159,7 @@ static gint lua_zmq_recv(lua_State* lua) {
 }
 
 static gint lua_zmq_send(lua_State* lua) {
-  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   gsize len;
   const gchar* str = luaL_checklstring(lua, 2, &len);
   gint flags = luaL_optint(lua, 3, 0);
@@ -169,7 +169,7 @@ static gint lua_zmq_send(lua_State* lua) {
                     len,
                     zmq_g_free,
                     NULL);
-  if (zmq_send(*socket, &msg, flags) == -1) {
+  if (zmq_send(socket, &msg, flags) == -1) {
     zmq_msg_close(&msg);
     return lua_zmq_error(lua, "zmq_send");
   }
@@ -177,7 +177,7 @@ static gint lua_zmq_send(lua_State* lua) {
 }
 
 static gint lua_zmq_setopt(lua_State* lua) {
-  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint option = luaL_checkint(lua, 2);
   union {
     gint i;
@@ -220,9 +220,9 @@ static gint lua_zmq_setopt(lua_State* lua) {
 
   gint rc;
   if (str == NULL) {
-    rc = zmq_setsockopt(*socket, option, &optval, optsize);
+    rc = zmq_setsockopt(socket, option, &optval, optsize);
   } else {
-    rc = zmq_setsockopt(*socket, option, str, optsize);
+    rc = zmq_setsockopt(socket, option, str, optsize);
   }
 
   if (rc == -1) {
@@ -260,9 +260,9 @@ static gint lua_zmq_version(lua_State* lua) {
 }
 
 static gint lua_zmq_watch(lua_State* lua) {
-  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
-  if (*socket == NULL) return luaL_error(lua, "Cannot watch closed socket.");
-  struct watcher* watcher = g_hash_table_lookup(watchers, *socket);
+  gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
+  if (socket == NULL) return luaL_error(lua, "Cannot watch closed socket.");
+  struct watcher* watcher = g_hash_table_lookup(watchers, socket);
 
   if (watcher == NULL) {
     watcher = g_new(struct watcher, 1);
@@ -270,7 +270,7 @@ static gint lua_zmq_watch(lua_State* lua) {
     watcher->socket_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
     watcher->in_ref = LUA_NOREF;
     watcher->out_ref = LUA_NOREF;
-    g_hash_table_insert(watchers, *socket, watcher);
+    g_hash_table_insert(watchers, socket, watcher);
   }
   gint nargs = lua_gettop(lua);
   if (nargs >= 2) {

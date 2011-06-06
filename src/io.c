@@ -55,9 +55,11 @@ void io_mainloop(gint server) {
     lua_timer_execute(&start);
 
     descriptor_remove_closed();
+    lua_zmq_remove_unwatched();
     g_array_set_size(pollitems, 0);
     g_array_append_val(pollitems, server_item);
     descriptor_add_pollitems(pollitems);
+    lua_zmq_add_pollitems(pollitems);
 
     /* Poll & process sockets. */
     gint poll_count = zmq_poll((zmq_pollitem_t*)pollitems->data,
@@ -67,7 +69,9 @@ void io_mainloop(gint server) {
                                     zmq_pollitem_t,
                                     0),
                      &poll_count);
-    descriptor_handle_pollitems(pollitems, poll_count);
+    descriptor_handle_pollitems(pollitems, &poll_count);
+    lua_zmq_handle_pollitems(pollitems, &poll_count);
+    if (poll_count != 0) WARN("Skipped %d poll items.", poll_count);
     descriptor_handle_commands(&start);
     descriptor_send_prompts();
 

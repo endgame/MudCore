@@ -282,17 +282,17 @@ void descriptor_add_pollitems(GArray* /* of zmq_pollitem_t */ pollitems) {
 }
 
 void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
-                                 gint poll_count) {
+                                 gint* poll_count) {
   for (guint i = 0; i < pollitems->len; i++) {
-    if (poll_count == 0) break;
+    if (*poll_count == 0) break;
     zmq_pollitem_t* pollitem = &g_array_index(pollitems, zmq_pollitem_t, i);
     if (pollitem->socket != NULL) continue;
 
     struct descriptor* descriptor = descriptor_get(pollitem->fd);
-    if (descriptor == NULL) continue; /* Could be the server fd. */
+    if (descriptor == NULL) continue; /* Could be the server fd, or a
+                                         ZeroMQ socket. */
 
-    if (pollitem->revents != 0) poll_count--;
-
+    if (pollitem->revents != 0) (*poll_count)--;
     if (pollitem->revents & ZMQ_POLLERR) {
       ERROR("FD %d in error state. Closing", pollitem->fd);
       descriptor_close(descriptor);

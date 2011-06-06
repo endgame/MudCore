@@ -144,7 +144,6 @@ void descriptor_remove_closed(void);
 /**
  ** @deftypefun void descriptor_add_pollitems @
  **   (GArray* @var{pollitems})
- **
  ** Add a pollitem to @var{pollitems} (a @code{GArray*} of
  ** @code{zmq_pollitem_t}) for every descriptor in the global table
  ** that needs to do some I/O.
@@ -155,13 +154,14 @@ void descriptor_add_pollitems(GArray* /* of zmq_pollitem_t */ pollitems);
 /**
  ** @deftypefun void descriptor_handle_pollitems @
  **   (GArray* @var{pollitems},                  @
- **    gint    @var{poll_count})
+ **    gint*   @var{poll_count})
  ** Process up to @var{poll_count} items from @var{pollitems} (a
- ** @code{GArray*} of @code{zmq_pollitem_t}).
+ ** @code{GArray*} of @code{zmq_pollitem_t}). Adjust @var{poll_count}
+ ** to reflect the number of items processed.
  ** @end deftypefun
  **/
 void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
-                                 gint poll_count);
+                                 gint* poll_count);
 
 /**
  ** @deftypefun void descriptor_handle_commands @

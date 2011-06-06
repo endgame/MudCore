@@ -13,22 +13,21 @@
 #define SOCKET_TYPE "mudcore.zmq_socket"
 #define ZMQ_IDENTITY_MAXLEN 255
 
-struct lua_zmq_socket {
-  gpointer socket;
-  gint in_watcher; /* Ref from luaL_ref. */
-  gint out_watcher; /* Ref from luaL_ref. */
+struct watcher {
+  gint socket_ref; /* Ref from luaL_ref. */
+  gint in_ref; /* Ref from luaL_ref. */
+  gint out_ref; /* Ref from luaL_ref. */
 };
 
 static gpointer context;
-static GHashTable* /* of gpointer (zmq socket) ->
-                      struct lua_zmq_socket* */ sockets;
+static GHashTable* /* of gpointer (zmq socket) -> struct watcher* */ watchers;
 
-/* Iterate through the socket table. Iter names the iterator, Value
-   the struct lua_zmq_socket pointer. */
-#define SOCKET_FOREACH(Iter, Value)                                     \
+/* Iterate through the watcher table. Iter names the iterator, Value
+   the struct watcher pointer. */
+#define WATCHER_FOREACH(Iter, Value)                                    \
   GHashTableIter Iter;                                                  \
-  g_hash_table_iter_init(&iter, sockets);                               \
-  struct lua_zmq_socket* Value;                                         \
+  g_hash_table_iter_init(&iter, watchers);                              \
+  struct watcher* Value;                                                \
   while (g_hash_table_iter_next(&Iter, NULL, (gpointer*)&Value))
 
 /* Callback for ZeroMQ to free data. */
@@ -37,14 +36,22 @@ static void zmq_g_free(gpointer data, gpointer hint) {
   g_free(data);
 }
 
-/* GLib's callback to destroy a socket when it's removed from the hash
-   table. */
-static void zmq_socket_destroy(gpointer s) {
-  struct lua_zmq_socket* socket = s;
+/* Callback to cleanup a removed watcher from the table. */
+static void watcher_destroy(gpointer w) {
+  struct watcher* watcher = w;
   lua_State* lua = lua_api_get();
-  if (zmq_close(socket->socket) == -1) PWARN("zmq_socket_destroy(zmq_close)");
-  luaL_unref(lua, LUA_REGISTRYINDEX, socket->in_watcher);
-  luaL_unref(lua, LUA_REGISTRYINDEX, socket->out_watcher);
+  luaL_unref(lua, LUA_REGISTRYINDEX, watcher->socket_ref);
+  luaL_unref(lua, LUA_REGISTRYINDEX, watcher->in_ref);
+  luaL_unref(lua, LUA_REGISTRYINDEX, watcher->out_ref);
+  watcher->socket_ref = LUA_NOREF;
+  watcher->in_ref = LUA_NOREF;
+  watcher->out_ref = LUA_NOREF;
+  g_free(watcher);
+}
+
+/* Check if a ref points to a non-nil object. */
+static gboolean real_ref(gint ref) {
+  return (ref != LUA_NOREF && ref != LUA_REFNIL);
 }
 
 /* Raise an error with message MSG..": "..zmq_strerror(errno). */
@@ -53,34 +60,44 @@ static gint lua_zmq_error(lua_State* lua, const gchar* msg) {
 }
 
 static gint lua_zmq_bind(lua_State* lua) {
-  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   const gchar* endpoint = luaL_checkstring(lua, 2);
-  if (zmq_bind(socket->socket, endpoint) == -1) {
+  if (zmq_bind(*socket, endpoint) == -1) {
     return lua_zmq_error(lua, "zmq_bind");
   }
   return 0;
 }
 
 static gint lua_zmq_close(lua_State* lua) {
-  /* Even though this might fire twice (socket:close(), followed by
-     __gc()), it's OK because the destructor code is executed once
-     (when it's removed by the hashtable's DestroyNotify callback). */
-  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
-  g_hash_table_remove(sockets, socket->socket);
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  if (*socket != NULL) {
+    struct watcher* watcher = g_hash_table_lookup(watchers, *socket);
+    if (watcher != NULL) {
+      lua_State* lua = lua_api_get();
+      luaL_unref(lua, LUA_REGISTRYINDEX, watcher->socket_ref);
+      luaL_unref(lua, LUA_REGISTRYINDEX, watcher->in_ref);
+      luaL_unref(lua, LUA_REGISTRYINDEX, watcher->out_ref);
+      watcher->socket_ref = LUA_NOREF;
+      watcher->in_ref = LUA_NOREF;
+      watcher->out_ref = LUA_NOREF;
+    }
+    zmq_close(*socket);
+    *socket = NULL;
+  }
   return 0;
 }
 
 static gint lua_zmq_connect(lua_State* lua) {
-  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   const gchar* endpoint = luaL_checkstring(lua, 2);
-  if (zmq_connect(socket->socket, endpoint) == -1) {
+  if (zmq_connect(*socket, endpoint) == -1) {
     return lua_zmq_error(lua, "zmq_connect");
   }
   return 0;
 }
 
 static gint lua_zmq_getopt(lua_State* lua) {
-  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint option = luaL_checkint(lua, 2);
   union {
     gchar s[ZMQ_IDENTITY_MAXLEN];
@@ -90,7 +107,7 @@ static gint lua_zmq_getopt(lua_State* lua) {
     guint64 u64;
   } buf;
   gsize buf_size = sizeof(buf);
-  if (zmq_getsockopt(socket->socket, option, &buf, &buf_size) == -1) {
+  if (zmq_getsockopt(*socket, option, &buf, &buf_size) == -1) {
     return lua_zmq_error(lua, "zmq_getsockopt");
   }
 
@@ -128,11 +145,11 @@ static gint lua_zmq_getopt(lua_State* lua) {
 }
 
 static gint lua_zmq_recv(lua_State* lua) {
-  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint flags = luaL_optint(lua, 2, 0);
   zmq_msg_t msg;
   zmq_msg_init(&msg);
-  if (zmq_recv(socket->socket, &msg, flags) == -1) {
+  if (zmq_recv(*socket, &msg, flags) == -1) {
     zmq_msg_close(&msg);
     return lua_zmq_error(lua, "zmq_recv");
   }
@@ -142,7 +159,7 @@ static gint lua_zmq_recv(lua_State* lua) {
 }
 
 static gint lua_zmq_send(lua_State* lua) {
-  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   gsize len;
   const gchar* str = luaL_checklstring(lua, 2, &len);
   gint flags = luaL_optint(lua, 3, 0);
@@ -152,7 +169,7 @@ static gint lua_zmq_send(lua_State* lua) {
                     len,
                     zmq_g_free,
                     NULL);
-  if (zmq_send(socket->socket, &msg, flags) == -1) {
+  if (zmq_send(*socket, &msg, flags) == -1) {
     zmq_msg_close(&msg);
     return lua_zmq_error(lua, "zmq_send");
   }
@@ -160,7 +177,7 @@ static gint lua_zmq_send(lua_State* lua) {
 }
 
 static gint lua_zmq_setopt(lua_State* lua) {
-  struct lua_zmq_socket* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint option = luaL_checkint(lua, 2);
   union {
     gint i;
@@ -203,9 +220,9 @@ static gint lua_zmq_setopt(lua_State* lua) {
 
   gint rc;
   if (str == NULL) {
-    rc = zmq_setsockopt(socket->socket, option, &optval, optsize);
+    rc = zmq_setsockopt(*socket, option, &optval, optsize);
   } else {
-    rc = zmq_setsockopt(socket->socket, option, str, optsize);
+    rc = zmq_setsockopt(*socket, option, str, optsize);
   }
 
   if (rc == -1) {
@@ -220,14 +237,10 @@ static gint lua_zmq_socket(lua_State* lua) {
   if (socket == NULL) {
     return lua_zmq_error(lua, "zmq_socket");
   }
-  struct lua_zmq_socket* result = lua_newuserdata(lua, sizeof(*result));
+  gpointer* result = lua_newuserdata(lua, sizeof(*result));
   luaL_getmetatable(lua, SOCKET_TYPE);
   lua_setmetatable(lua, -2);
-  result->socket = socket;
-  result->in_watcher = LUA_NOREF;
-  result->out_watcher = LUA_NOREF;
-
-  g_hash_table_insert(sockets, socket, result);
+  *result = socket;
   return 1;
 }
 
@@ -246,6 +259,56 @@ static gint lua_zmq_version(lua_State* lua) {
   return 1;
 }
 
+static gint lua_zmq_watch(lua_State* lua) {
+  gpointer* socket = luaL_checkudata(lua, 1, SOCKET_TYPE);
+  if (*socket == NULL) return luaL_error(lua, "Cannot watch closed socket.");
+  struct watcher* watcher = g_hash_table_lookup(watchers, *socket);
+
+  if (watcher == NULL) {
+    watcher = g_new(struct watcher, 1);
+    lua_pushvalue(lua, 1);
+    watcher->socket_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+    watcher->in_ref = LUA_NOREF;
+    watcher->out_ref = LUA_NOREF;
+    g_hash_table_insert(watchers, *socket, watcher);
+  }
+  gint nargs = lua_gettop(lua);
+  if (nargs >= 2) {
+    if (!lua_isnil(lua, 2)) luaL_checktype(lua, 2, LUA_TFUNCTION);
+    luaL_unref(lua, LUA_REGISTRYINDEX, watcher->in_ref);
+    lua_pushvalue(lua, 2);
+    watcher->in_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+  }
+  if (nargs >= 3) {
+    if (!lua_isnil(lua, 3)) luaL_checktype(lua, 3, LUA_TFUNCTION);
+    luaL_unref(lua, LUA_REGISTRYINDEX, watcher->out_ref);
+    lua_pushvalue(lua, 3);
+    watcher->out_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+  }
+  return 0;
+}
+
+/* Call a watcher with a given socket. */
+static void watcher_call(lua_State* lua, gint watcher_ref, gint socket_ref) {
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, watcher_ref);
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, socket_ref);
+  if (lua_pcall(lua, 1, 0, 0) != 0) {
+    const gchar* what = lua_tostring(lua, -1);
+    ERROR("Error in mudcore.zmq_socket callback: %s", what);
+    lua_pop(lua, 1);
+
+    if (!real_ref(socket_ref)) return;
+
+    lua_pushcfunction(lua, lua_zmq_close);
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, socket_ref);
+    if (lua_pcall(lua, 1, 0, 0) != 0) {
+      what = lua_tostring(lua, -1);
+      ERROR("Cannot close socket: %s", what);
+      lua_pop(lua, 1);
+    }
+  }
+}
+
 #define DECLARE_CONST(C)                        \
   G_STMT_START {                                \
     lua_pushinteger(lua, ZMQ_##C);              \
@@ -253,12 +316,11 @@ static gint lua_zmq_version(lua_State* lua) {
   } G_STMT_END
 
 void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
-  // TODO finish
   context = zmq_context;
-  sockets = g_hash_table_new_full(g_direct_hash,
-                                  g_direct_equal,
-                                  NULL,
-                                  zmq_socket_destroy);
+  watchers = g_hash_table_new_full(g_direct_hash,
+                                   g_direct_equal,
+                                   NULL,
+                                   watcher_destroy);
   DEBUG("Creating mud.zmq table.");
   lua_getglobal(lua, "mud");
 
@@ -328,6 +390,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { "recv"   , lua_zmq_recv    },
     { "send"   , lua_zmq_send    },
     { "setopt" , lua_zmq_setopt  },
+    { "watch"  , lua_zmq_watch   },
     { NULL     , NULL            }
   };
   lua_newtable(lua);
@@ -337,5 +400,55 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
 }
 
 void lua_zmq_deinit(void) {
-  g_hash_table_unref(sockets);
+  g_hash_table_unref(watchers);
+}
+
+void lua_zmq_add_pollitems(GArray* /* of zmq_pollitem_t */ pollitems) {
+  lua_State* lua = lua_api_get();
+  zmq_pollitem_t pollitem;
+  memset(&pollitem, 0, sizeof(pollitem));
+  WATCHER_FOREACH(iter, watcher) {
+    if (!real_ref(watcher->socket_ref)) continue;
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, watcher->socket_ref);
+    pollitem.socket = *(gpointer*)lua_touserdata(lua, -1);
+    lua_pop(lua, 1);
+    pollitem.events = 0;
+    if (real_ref(watcher->in_ref)) pollitem.events |= ZMQ_POLLIN;
+    if (real_ref(watcher->out_ref)) pollitem.events |= ZMQ_POLLOUT;
+    g_array_append_val(pollitems, pollitem);
+  }
+}
+
+void lua_zmq_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
+                              gint* poll_count) {
+  lua_State* lua = lua_api_get();
+  for (guint i = 0; i < pollitems->len; i++) {
+    if (*poll_count == 0) break;
+    zmq_pollitem_t* pollitem = &g_array_index(pollitems, zmq_pollitem_t, i);
+    if (pollitem->socket == NULL) continue;
+
+    struct watcher* watcher = g_hash_table_lookup(watchers, pollitem->socket);
+    if (watcher == NULL) continue; /* Could be the server fd or a
+                                      client FD. */
+
+    if (pollitem->revents != 0) (*poll_count)--;
+    if (pollitem->revents & ZMQ_POLLIN
+        && real_ref(watcher->socket_ref)
+        && real_ref(watcher->in_ref)) {
+      watcher_call(lua, watcher->in_ref, watcher->socket_ref);
+    }
+    if (pollitem->revents & ZMQ_POLLOUT
+        && real_ref(watcher->socket_ref)
+        && real_ref(watcher->out_ref)) {
+      watcher_call(lua, watcher->out_ref, watcher->socket_ref);
+    }
+  }
+}
+
+void lua_zmq_remove_unwatched(void) {
+  WATCHER_FOREACH(iter, watcher) {
+    if (!real_ref(watcher->socket_ref)
+        && !real_ref(watcher->in_ref)
+        && !real_ref(watcher->out_ref)) g_hash_table_iter_remove(&iter);
+  }
 }

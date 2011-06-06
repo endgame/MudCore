@@ -1,8 +1,6 @@
-Lua API(zmq):
-
-- s:watch(in=func(s), out=func(s))
-
 TODO:
+- document lua_timer.h.
+- detached method table for mud.log?
 - OO interface for descriptors
 - OO interface for timers
 - telnet linemode

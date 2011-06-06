@@ -23,7 +23,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context);
 /**
  ** @deftypefun void lua_zmq_deinit @
  **   (void)
- ** Release memory used by the ZeroMQ API.
+ ** Release memory used by the ZeroMQ api.
  ** @end deftypefun
  **/
 void lua_zmq_deinit(void);

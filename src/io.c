@@ -55,6 +55,7 @@ void io_mainloop(gint server) {
     lua_timer_execute(&start);
 
     descriptor_remove_closed();
+    lua_timer_remove_dead();
     lua_zmq_remove_unwatched();
     g_array_set_size(pollitems, 0);
     g_array_append_val(pollitems, server_item);

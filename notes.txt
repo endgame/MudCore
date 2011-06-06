@@ -1,7 +1,7 @@
 TODO:
 - detached method table for mud.log?
 - OO interface for descriptors
-- OO interface for timers
+- allow reassignment of the prompt function; remove mud.descriptor.send_prompt()
 - telnet linemode
 - indices
 - OSX port

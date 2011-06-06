@@ -8,14 +8,13 @@ future.
 @defun mud.timer.new (@var{delay}, @var{callback})
 Register a timer that calls @var{callback} after @var{delay}
 seconds. @var{callback} is a function of zero arguments (Lua's semantics
-let you close over variables in other scopes, however). Returns a token
-that can be passed to @code{mud.timer.cancel()}.
+let you close over variables in other scopes, however). Returns a Lua
+userdatum with type @code{mudcore.timer}.
 
 If the callback returns a positive number, it is used as the new delay
 until the timer is called again. Otherwise, the timer is disabled.
 @end defun
 
-@defun mud.timer.cancel (@var{timer})
-Cancels a timer. @var{timer} is a value returned from a previous call to
-@code{mud.timer.new()}.
-@end defun
+@defmethod mudcore.timer cancel ()
+Cancels a timer.
+@end defmethod

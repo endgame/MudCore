@@ -28,4 +28,13 @@ void lua_timer_deinit(void);
  **/
 void lua_timer_execute(const struct timeval* start);
 
+/**
+ ** @deftypefun void lua_timer_remove_dead @
+ **   (void)
+ ** Remove any dead timers. A timer is dead if and only if it has
+ ** fired and has not been rescheduled.
+ ** @end deftypefun
+ **/
+void lua_timer_remove_dead(void);
+
 #endif

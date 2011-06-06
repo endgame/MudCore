@@ -12,6 +12,7 @@
 #define TIMER_TYPE "mudcore.timer"
 
 struct timer_entry {
+  gboolean dead;
   gint func; /* Ref from luaL_ref. */
   struct timeval time;
 };
@@ -34,12 +35,15 @@ static GHashTable* /* of gint (ref to func) -> struct timer_entry* */ timers;
 
 static gint lua_timer_cancel(lua_State* lua) {
   gint token = *(gint*)luaL_checkudata(lua, 1, TIMER_TYPE);
-  g_hash_table_remove(timers, GINT_TO_POINTER(token));
+  struct timer_entry* timer = g_hash_table_lookup(timers,
+                                                  GINT_TO_POINTER(token));
+  timer->dead = TRUE;
   return 0;
 }
 
 static gint lua_timer_new(lua_State* lua) {
   struct timer_entry* t = g_new(struct timer_entry, 1);
+  t->dead = FALSE;
   gettimeofday(&t->time, NULL);
   timeval_add_delay(&t->time, luaL_checknumber(lua, 1));
   t->func = luaL_ref(lua, LUA_REGISTRYINDEX);
@@ -62,15 +66,21 @@ void lua_timer_init(lua_State* lua) {
   lua_getglobal(lua, "mud");
   lua_newtable(lua);
   static const luaL_Reg timer_funcs[] = {
-    { "cancel", lua_timer_cancel },
-    { "new"   , lua_timer_new    },
-    { NULL    , NULL             }
+    { "new", lua_timer_new },
+    { NULL , NULL          }
   };
   luaL_register(lua, NULL, timer_funcs);
   lua_setfield(lua, -2, "timer");
   lua_pop(lua, 1);
 
   luaL_newmetatable(lua, TIMER_TYPE);
+  static const luaL_Reg timer_methods[] = {
+    { "cancel", lua_timer_cancel },
+    { NULL    , NULL             }
+  };
+  lua_newtable(lua);
+  luaL_register(lua, NULL, timer_methods);
+  lua_setfield(lua, -2, "__index");
   lua_pop(lua, 1);
 }
 
@@ -92,9 +102,15 @@ void lua_timer_execute(const struct timeval* start) {
         timer->time = *start;
         timeval_add_delay(&timer->time, newdelay);
       } else {
-        g_hash_table_iter_remove(&iter);
+        timer->dead = TRUE;
       }
       lua_pop(lua, 1);
     }
+  }
+}
+
+void lua_timer_remove_dead(void) {
+  TIMER_FOREACH(iter, timer) {
+    if (timer->dead) g_hash_table_iter_remove(&iter);
   }
 }

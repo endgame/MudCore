@@ -1,9 +1,8 @@
 TODO:
 - detached method table for mud.log?
-- OO interface for descriptors
 - allow reassignment of the prompt function; remove mud.descriptor.send_prompt()
 - telnet linemode
-- indices
+- indices in texinfo file
 - OSX port
 - W32 port
   - zmq_getopt returns SOCKET for ZMQ_FD

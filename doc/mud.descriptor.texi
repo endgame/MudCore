@@ -3,15 +3,8 @@
 
 The @code{mud.descriptor} table holds the primitives for socket
 operations. Each client gets its own lua thread, and can block until
-input is available. Descriptors are referred to by their file descriptor
-number.
-
-@defun mud.descriptor.close (@var{fd})
-Put a descriptor into the @emph{draining} state; no new input can be
-received and the descriptor will close after all pending output has been
-sent. Although a number internally, the FD given to Lua code is a
-userdatum. Arbitrary numbers are not accepted by other functions.
-@end defun
+input is available. Descriptors are exposed as a Lua userdatum with type
+@code{mudcore.descriptor}.
 
 @defun mud.descriptor.on_close (@var{fd})
 This callback, if defined, is called when a descriptor closes. The
@@ -31,10 +24,6 @@ the optional @var{delay} parameter, the next command won't be read until
 @var{delay} seconds have passed.
 @end defun
 
-@defun mud.descriptor.send (@var{fd}, @var{str})
-Send @var{str} to @var{fd}.
-@end defun
-
 @defun mud.descriptor.send_prompt (@var{fd})
 This function is called whenever a descriptor needs to have a new
 prompt. It is called for each FD that has had input performed or output
@@ -42,8 +31,18 @@ sent to it since its last prompt, just before the telnet IAC GA sequence
 is sent. The default prompt is boring, and leaves a warning in the log.
 @end defun
 
-@defun mud.descriptor.will_echo (@var{fd}, @var{will})
+@defmethod mudcore.descriptor close ()
+Put a descriptor into the @emph{draining} state; no new input can be
+received and the descriptor will close after all pending output has been
+sent.
+@end defmethod
+
+@defmethod mudcore.descriptor (@var{str})
+Send @var{str} to the descriptor.
+@end defmethod
+
+@defmethod mudcore.descriptor will_echo (@var{will})
 Manipulate the telnet ECHO option. Turning the option on means that the
 server is responsible for echoing input. Turning it on but echoing
-nothing is common for password dialogs.
-@end defun
+nothing is common when accepting password input.
+@end defmethod

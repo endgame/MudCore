@@ -191,13 +191,20 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
 static void descriptor_send_prompt(struct descriptor* descriptor) {
   lua_State* lua = lua_api_get();
   lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
-  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
-  if (lua_pcall(lua, 1, 0, 0) != 0) {
-    const gchar* what = lua_tostring(lua, -1);
-    ERROR("Error in mud.descriptor.send_prompt: %s", what);
+
+  if (lua_type(lua, -1) == LUA_TSTRING) {
+    descriptor_append(descriptor, lua_tostring(lua, -1));
     lua_pop(lua, 1);
-    descriptor_close(descriptor);
+  } else {
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
+    if (lua_pcall(lua, 1, 0, 0) != 0) {
+      const gchar* what = lua_tostring(lua, -1);
+      ERROR("Error in prompt callback function: %s", what);
+      lua_pop(lua, 1);
+      descriptor_close(descriptor);
+    }
   }
+
   descriptor->needs_prompt = FALSE;
   descriptor->needs_newline = TRUE;
   telnet_iac(descriptor->telnet, TELNET_GA);

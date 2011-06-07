@@ -27,14 +27,6 @@ static gint lua_descriptor_close(lua_State* lua) {
   return 0;
 }
 
-static gint lua_descriptor_default_prompt(lua_State* lua) {
-  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
-  if (descriptor != NULL) {
-    descriptor_append(descriptor, "? ");
-  }
-  return 0;
-}
-
 static gint lua_descriptor_index(lua_State* lua) {
   if (lua_type(lua, 2) == LUA_TSTRING
       && strcmp(lua_tostring(lua, 2), "prompt") == 0) {
@@ -128,7 +120,7 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_State* thread = lua_newthread(lua);
   descriptor->thread_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
 
-  lua_pushcfunction(lua, lua_descriptor_default_prompt);
+  lua_pushliteral(lua, "? ");
   descriptor->prompt_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
 
   /* Call mud.descriptor.on_open in the new thread. */

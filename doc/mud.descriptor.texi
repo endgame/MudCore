@@ -27,9 +27,9 @@ the optional @var{delay} parameter, the next command won't be read until
 
 @defivar mudcore.descriptor prompt
 Each descriptor has an independent callback for sending a prompt. This
-is a function of one argument, the descriptor. The server ensures that
-any output sent starts on a fresh line, and you shouldn't write a
-newline after you're finished sending.
+is either a string or a function of one argument, the descriptor. The
+server ensures that any output sent starts on a fresh line, and you
+shouldn't write a newline after you're finished sending.
 @end defivar
 
 @defmethod mudcore.descriptor close ()

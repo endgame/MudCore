@@ -120,12 +120,13 @@ See the man page for @code{zmq_send} for a description of each flag.
 
 @defmethod mudcore.zmq_socket watch (@var{in_func} = @code{nil}, @
                                      @var{out_func} = @code{nil})
+
 Watch this socket for events, hooking it into the main event loop (that
 also processes telnet I/O on regular sockets). If any watchers are set
 on a socket, it cannot be garbage collected. @var{in_func} and
 @var{out_func} are functions that take a single argument: the socket
 being watched. If @var{in_func} and @var{out_func} are both @code{nil},
 the watcher is removed entirely, allowing the socket to be collected if
-nothing else is using it (though you're better off calling
-@code{:close()} on it).
+nothing else is using it. It's better to call @code{:close()} explicitly
+than relying on the GC, though.
 @end defmethod

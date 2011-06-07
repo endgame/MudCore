@@ -6,13 +6,14 @@ operations. Each client gets its own lua thread, and can block until
 input is available. Descriptors are exposed as a Lua userdatum with type
 @code{mudcore.descriptor}.
 
-@defun mud.descriptor.on_close (@var{fd})
+@defun mud.descriptor.on_close (@var{descriptor})
 This callback, if defined, is called when a descriptor closes. The
 descriptor won't be suitable for writing at this point, but here's a
-good place to remove references to @var{fd} from your data structures.
+good place to remove references to @var{descriptor} from your data
+structures.
 @end defun
 
-@defun mud.descriptor.on_open (@var{fd})
+@defun mud.descriptor.on_open (@var{descriptor})
 Your code needs to define this function. It is the entry point for new
 threads. If you don't, clients will be dropped.
 @end defun
@@ -24,12 +25,12 @@ the optional @var{delay} parameter, the next command won't be read until
 @var{delay} seconds have passed.
 @end defun
 
-@defun mud.descriptor.send_prompt (@var{fd})
-This function is called whenever a descriptor needs to have a new
-prompt. It is called for each FD that has had input performed or output
-sent to it since its last prompt, just before the telnet IAC GA sequence
-is sent. The default prompt is boring, and leaves a warning in the log.
-@end defun
+@defivar mudcore.descriptor prompt
+Each descriptor has an independent callback for sending a prompt. This
+is a function of one argument, the descriptor. The server ensures that
+any output sent starts on a fresh line, and you shouldn't write a
+newline after you're finished sending.
+@end defivar
 
 @defmethod mudcore.descriptor close ()
 Put a descriptor into the @emph{draining} state; no new input can be
@@ -37,7 +38,7 @@ received and the descriptor will close after all pending output has been
 sent.
 @end defmethod
 
-@defmethod mudcore.descriptor (@var{str})
+@defmethod mudcore.descriptor send (@var{str})
 Send @var{str} to the descriptor.
 @end defmethod
 

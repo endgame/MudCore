@@ -37,6 +37,7 @@ static void descriptor_destroy(gpointer user_data) {
   descriptor_close(descriptor);
   lua_State* lua = lua_api_get();
   luaL_unref(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
+  luaL_unref(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
   luaL_unref(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
   telnet_free(descriptor->telnet);
   buffer_free(descriptor->line_buffer);
@@ -189,12 +190,7 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
 /* Send a fresh prompt (from Lua), followed by IAC GA. */
 static void descriptor_send_prompt(struct descriptor* descriptor) {
   lua_State* lua = lua_api_get();
-  /* Call mud.descriptor.send_prompt. */
-  lua_getglobal(lua, "mud");
-  lua_getfield(lua, -1, "descriptor");
-  lua_remove(lua, -2);
-  lua_getfield(lua, -1, "send_prompt");
-  lua_remove(lua, -2);
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
   lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
   if (lua_pcall(lua, 1, 0, 0) != 0) {
     const gchar* what = lua_tostring(lua, -1);

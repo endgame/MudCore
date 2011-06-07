@@ -62,16 +62,10 @@ Set the port for the mud's main socket.
 Override the MUD's default pulse length (100 milliseconds). This value
 is given in microseconds.
 
-@item -zmq-io-threads
+@item -zmq-io-threads=INT
 Override the number of I/O threads used by ZeroMQ. You may want to
 increase this from its default of 1 if you're using a lot of ZeroMQ
 sockets, or set it to 0 if you aren't using ZeroMQ at all.
-
-@item -zmq-pub-endpoint=ENDPOINT
-Set the ZeroMQ endpoint for the @code{ZMQ_PUB} socket.
-
-@item -zmq-rep-endpoint=ENDPOINT
-Set the ZeroMQ endpoint for the @code{ZMQ_REP} socket.
 
 All command-line arguments are available to Lua code. @xref{mud.args}.
 @end table

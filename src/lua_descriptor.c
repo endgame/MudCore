@@ -4,6 +4,7 @@
 #include "lua_descriptor.h"
 
 #include <lauxlib.h>
+#include <string.h>
 
 #include "descriptor.h"
 #include "log.h"
@@ -23,6 +24,43 @@ static struct descriptor* lua_descriptor_get(lua_State* lua, gint index) {
 static gint lua_descriptor_close(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) descriptor_drain(descriptor);
+  return 0;
+}
+
+static gint lua_descriptor_default_prompt(lua_State* lua) {
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+  if (descriptor != NULL) {
+    descriptor_append(descriptor, "? ");
+  }
+  return 0;
+}
+
+static gint lua_descriptor_index(lua_State* lua) {
+  if (lua_type(lua, 2) == LUA_TSTRING
+      && strcmp(lua_tostring(lua, 2), "prompt") == 0) {
+    struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
+  } else {
+    if (lua_getmetatable(lua, 1) == 0) {
+      lua_pushnil(lua);
+    } else {
+      lua_pushvalue(lua, 2);
+      lua_rawget(lua, -2);
+    }
+  }
+  return 1;
+}
+
+static gint lua_descriptor_newindex(lua_State* lua) {
+  if (lua_type(lua, 2) != LUA_TSTRING) return 0;
+
+  if (strcmp(lua_tostring(lua, 2), "prompt") == 0) {
+    struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+    luaL_unref(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
+    lua_pushvalue(lua, 3);
+    descriptor->prompt_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+  }
+
   return 0;
 }
 
@@ -51,19 +89,6 @@ static gint lua_descriptor_send(lua_State* lua) {
   return 0;
 }
 
-static gint lua_descriptor_send_prompt(lua_State* lua) {
-  static gboolean warned = FALSE;
-  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
-  if (descriptor != NULL) {
-    if (!warned) {
-      WARN("Using default mud.descriptor.send_prompt.");
-      warned = TRUE;
-    }
-    descriptor_append(descriptor, "? ");
-  }
-  return 0;
-}
-
 static gint lua_descriptor_will_echo(lua_State* lua) {
   gboolean will = TRUE;
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
@@ -80,7 +105,6 @@ void lua_descriptor_init(lua_State* lua) {
   static const luaL_Reg descriptor_funcs[] = {
     { "on_open"    , lua_descriptor_on_open     },
     { "read"       , lua_descriptor_read        },
-    { "send_prompt", lua_descriptor_send_prompt },
     { NULL         , NULL                       }
   };
   luaL_register(lua, NULL, descriptor_funcs);
@@ -89,13 +113,13 @@ void lua_descriptor_init(lua_State* lua) {
 
   luaL_newmetatable(lua, DESCRIPTOR_TYPE);
   static const luaL_Reg descriptor_methods[] = {
-    { "close"    , lua_descriptor_close     },
-    { "send"     , lua_descriptor_send      },
-    { "will_echo", lua_descriptor_will_echo },
+    { "__index"   , lua_descriptor_index     },
+    { "__newindex", lua_descriptor_newindex  },
+    { "close"     , lua_descriptor_close     },
+    { "send"      , lua_descriptor_send      },
+    { "will_echo" , lua_descriptor_will_echo },
   };
-  lua_newtable(lua);
   luaL_register(lua, NULL, descriptor_methods);
-  lua_setfield(lua, -2, "__index");
   lua_pop(lua, 1);
 }
 
@@ -103,6 +127,9 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_State* lua = lua_api_get();
   lua_State* thread = lua_newthread(lua);
   descriptor->thread_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+
+  lua_pushcfunction(lua, lua_descriptor_default_prompt);
+  descriptor->prompt_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
 
   /* Call mud.descriptor.on_open in the new thread. */
   lua_getglobal(thread, "mud");

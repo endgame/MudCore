@@ -1,5 +1,5 @@
 TODO:
-- concept description in texinfo file
+- README
 - licenses
 - OSX port
 - W32 port

@@ -6,8 +6,11 @@ programs, via the ZeroMQ messaging library. The server maintains an
 internal ZeroMQ context and user code can create sockets registered to
 that context. Lua code may also arrange to be notified when a socket's
 state changes (becomes readable or writeable). The interface is inspired
-by lua-zmq (@url{http://TODO}), but has been changed to integrate with
-mudcore's event loop.
+by lua-zmq (@url{https://github.com/Neopallium/lua-zmq}), but has been
+changed to integrate with mudcore's event loop. Since the sockets are
+integrated into the event loop, they can run only as fast as the
+server's pulse rate. This means that you may want to introduce a caching
+layer if response time is super-important.
 
 Constants defined in the ZeroMQ C API (@code{ZMQ_FOO}) are exposed as
 @code{mud.zmq.FOO}.

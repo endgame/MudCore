@@ -4,7 +4,7 @@ MudCode, a simple MUD server
 Build dependencies:
 -------------------
 - GLib (debian: apt-get install libglib2.0-dev)
-- libtelnet (build source from TODO)
+- libtelnet (build source from https://github.com/elanthis/libtelnet)
 - lua 5.1 (debian: apt-get install liblua5.1-dev)
 - pkg-config (debian: apt-get install pkg-config)
 - ZeroMQ >= 2.1 (debian: libzmq-dev is too old, build source from

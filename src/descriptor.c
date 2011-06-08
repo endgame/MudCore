@@ -95,7 +95,7 @@ static void descriptor_do_send(struct descriptor* descriptor) {
       return;
     }
 
-    DEBUG("FD %d: Sent %d bytes.", descriptor->fd, count);
+    DEBUG("FD %d: Sent %" G_GSSIZE_FORMAT " bytes.", descriptor->fd, count);
     buffer_drain(descriptor->output_buffer, count);
   }
 }

@@ -1,8 +1,8 @@
 ## Process this file with automake to generate Makefile.in
 GENERATE_TEXI = $(AM_V_GEN)$(SED) -n \
-	-e '/^ \*\*\// { s/.*//; p }' \
-	-e '/^ \*\* / { s/^ \*\* //; p }' \
-	-e '/^ \*\*/ { s/^ \*\*//; p }' $< > $@
+	-e '/^ \*\*\// { s/.*//; p; }' \
+	-e '/^ \*\* / { s/^ \*\* //; p; }' \
+	-e '/^ \*\*/ { s/^ \*\*//; p; }' $< > $@
 GENERATED_TEXI = \
 	arg_parse.h.texi \
 	buffer.h.texi \

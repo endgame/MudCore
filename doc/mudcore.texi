@@ -84,9 +84,9 @@ is given in microseconds.
 Override the number of I/O threads used by ZeroMQ. You may want to
 increase this from its default of 1 if you're using a lot of ZeroMQ
 sockets, or set it to 0 if you aren't using ZeroMQ at all.
+@end table
 
 All command-line arguments are available to Lua code. @xref{mud.args}.
-@end table
 
 @node Lua Reference
 @chapter Lua reference

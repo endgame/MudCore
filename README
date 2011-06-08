@@ -1,0 +1,26 @@
+MudCode, a simple MUD server
+============================
+
+Build dependencies:
+-------------------
+- GLib (debian: apt-get install libglib2.0-dev)
+- libtelnet (build source from TODO)
+- lua 5.1 (debian: apt-get install liblua5.1-dev)
+- pkg-config (debian: apt-get install pkg-config)
+- ZeroMQ >= 2.1 (debian: libzmq-dev is too old, build source from
+  http://www.zeromq.org)
+
+Additional dependencies to build documentation:
+-----------------------------------------------
+- texinfo (debian: apt-get install texinfo)
+- texlive (pdf/ps/dvi only, debian: apt-get install texlive)
+
+Additional dependencies to build from git:
+------------------------------------------
+- autoconf (debian: apt-get install autoconf)
+- automake (debian: apt-get install automake)
+
+Building from source is the usual `./configure && make && make
+install' dance, but you'll need to run `autoreconf -i' first if you're
+building from git. The server runs just fine without being installed
+by `make install', if you don't want to install it.

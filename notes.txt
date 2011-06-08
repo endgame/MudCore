@@ -1,5 +1,4 @@
 TODO:
-- licenses
 - OSX port
 - W32 port
   - zmq_getopt returns SOCKET for ZMQ_FD

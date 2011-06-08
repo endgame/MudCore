@@ -11,7 +11,7 @@
 #include <glib.h>
 
 /**
- ** @deftp {Data Type} struct queue
+ ** @deftp {Data Type} {struct queue}
  ** A FIFO queue of strings.
  **
  ** @deftypeivar{struct queue} gint size

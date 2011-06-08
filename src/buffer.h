@@ -9,7 +9,7 @@
 #include <glib.h>
 
 /**
- ** @deftp {Data Type} struct buffer
+ ** @deftp {Data Type} {struct buffer}
  ** A dequeue-style buffer. Note that this is not a ring buffer, and
  ** that calling @code{buffer_drain()} will @code{memmove(3)} the
  ** remaining data in the buffer forwards.

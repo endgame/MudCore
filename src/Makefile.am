@@ -1,15 +1,10 @@
 ## Process this file with automake to generate Makefile.in
 AM_CFLAGS = $(GLib_CFLAGS) $(libtelnet_CFLAGS) $(Lua_CFLAGS) $(ZeroMQ_CFLAGS)
 LDADD     = $(GLib_LIBS)   $(libtelnet_LIBS)   $(Lua_LIBS)   $(ZeroMQ_LIBS)
-TESTS     = queue_test
 
-bin_PROGRAMS   = mudcore
-check_PROGRAMS = $(TESTS)
+bin_PROGRAMS = mudcore
 
-mudcore_SOURCES    = mudcore.c    $(COMMON_SOURCES)
-queue_test_SOURCES = queue_test.c $(COMMON_SOURCES)
-
-COMMON_SOURCES = \
+mudcore_SOURCES = \
 	arg_parse.c \
 	arg_parse.h \
 	buffer.c \
@@ -32,6 +27,7 @@ COMMON_SOURCES = \
 	lua_timer.h \
 	lua_zmq.c \
 	lua_zmq.h \
+	mudcore.c \
 	options.c \
 	options.h \
 	queue.c \

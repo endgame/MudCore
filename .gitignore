@@ -1,5 +1,4 @@
 *.o
-*_test
 .deps/
 Makefile
 Makefile.in

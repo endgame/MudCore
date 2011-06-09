@@ -369,7 +369,7 @@ void descriptor_close(struct descriptor* descriptor) {
   if (lua_isnil(lua, -1)) {
     lua_pop(lua, 1);
   } else {
-    lua_pushinteger(lua, descriptor->fd);
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
     if (lua_pcall(lua, 1, 0, 0) != 0) {
       const gchar* what = lua_tostring(lua, -1);
       ERROR("Error in mud.descriptor.on_close: %s", what);

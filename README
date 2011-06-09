@@ -1,5 +1,9 @@
-MudCode, a simple MUD server
+MudCore, a simple MUD server
 ============================
+
+MudCore is a simple MUD server. Game logic is implemented in lua,
+telnet handling is done for you, and the server can communicate with
+the outside world by way of ZeroMQ sockets.
 
 Build dependencies:
 -------------------
@@ -14,6 +18,10 @@ Additional dependencies to build documentation:
 -----------------------------------------------
 - texinfo (debian: apt-get install texinfo)
 - texlive (pdf/ps/dvi only, debian: apt-get install texlive)
+
+If you want documentation in a form that's not .info, try running
+`make pdf' or `make html'. Similarly, `make install-pdf' or `make
+install-html' will do what you expect.
 
 Additional dependencies to build from git:
 ------------------------------------------

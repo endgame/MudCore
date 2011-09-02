@@ -209,18 +209,19 @@ static void descriptor_send_prompt(struct descriptor* descriptor) {
   lua_State* lua = lua_api_get();
   lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
 
-  if (lua_type(lua, -1) == LUA_TSTRING) {
-    descriptor_append(descriptor, lua_tostring(lua, -1));
-    lua_pop(lua, 1);
-  } else {
+  if (lua_type(lua, -1) == LUA_TFUNCTION) {
     lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
-    if (lua_pcall(lua, 1, 0, 0) != 0) {
+    if (lua_pcall(lua, 1, 1, 0) != 0) {
       const gchar* what = lua_tostring(lua, -1);
       ERROR("Error in prompt callback function: %s", what);
       lua_pop(lua, 1);
       descriptor_close(descriptor);
+      return;
     }
   }
+
+  descriptor_append(descriptor, lua_tostring(lua, -1));
+  lua_pop(lua, 1);
 
   descriptor->needs_prompt = FALSE;
   descriptor->needs_newline = TRUE;

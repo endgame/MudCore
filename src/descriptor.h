@@ -73,11 +73,11 @@ enum descriptor_state {
  ** @deftypeivar {struct descriptor} telnet_t* telnet
  ** The telnet black-box state tracker.
  ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} gint extra_data_ref
+ ** Reference to this descriptor's extra_data (a lua table).
+ ** @end deftypeivar
  ** @deftypeivar {struct descriptor} gint fd_ref
  ** Reference to this descriptor's FD userdatum.
- ** @end deftypeivar
- ** @deftypeivar {struct descriptor} gint prompt_ref
- ** Reference to this descriptor's prompt function.
  ** @end deftypeivar
  ** @deftypeivar {struct descriptor} gint thread_ref
  ** Reference to this descriptor's lua thread.
@@ -121,8 +121,8 @@ struct descriptor {
   enum descriptor_state state;
   gint fd;
   telnet_t* telnet;
+  gint extra_data_ref;
   gint fd_ref;
-  gint prompt_ref;
   gint thread_ref;
   gboolean skip_until_newline;
   gboolean needs_prompt;

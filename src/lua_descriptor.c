@@ -44,32 +44,40 @@ static gint lua_descriptor_close(lua_State* lua) {
   return 0;
 }
 
-static gint lua_descriptor_index(lua_State* lua) {
-  if (lua_type(lua, 2) == LUA_TSTRING
-      && strcmp(lua_tostring(lua, 2), "prompt") == 0) {
-    struct descriptor* descriptor = lua_descriptor_get(lua, 1);
-    lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
+static gint lua_descriptor_extra_data(lua_State* lua) {
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+  if (descriptor != NULL) {
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
   } else {
-    if (lua_getmetatable(lua, 1) == 0) {
-      lua_pushnil(lua);
-    } else {
+    lua_pushnil(lua);
+  }
+  return 1;
+}
+
+static gint lua_descriptor_index(lua_State* lua) {
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+  if (descriptor != NULL) {
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
+    lua_pushvalue(lua, 2);
+    lua_gettable(lua, -2);
+    if (lua_isnil(lua, -1) && lua_getmetatable(lua, 1) != 0) {
       lua_pushvalue(lua, 2);
       lua_rawget(lua, -2);
     }
+  } else {
+    lua_pushnil(lua);
   }
   return 1;
 }
 
 static gint lua_descriptor_newindex(lua_State* lua) {
-  if (lua_type(lua, 2) != LUA_TSTRING) return 0;
-
-  if (strcmp(lua_tostring(lua, 2), "prompt") == 0) {
-    struct descriptor* descriptor = lua_descriptor_get(lua, 1);
-    luaL_unref(lua, LUA_REGISTRYINDEX, descriptor->prompt_ref);
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+  if (descriptor != NULL) {
+    lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
+    lua_pushvalue(lua, 2);
     lua_pushvalue(lua, 3);
-    descriptor->prompt_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+    lua_settable(lua, -3);
   }
-
   return 0;
 }
 
@@ -122,11 +130,12 @@ void lua_descriptor_init(lua_State* lua) {
 
   luaL_newmetatable(lua, DESCRIPTOR_TYPE);
   static const luaL_Reg descriptor_methods[] = {
-    { "__index"   , lua_descriptor_index     },
-    { "__newindex", lua_descriptor_newindex  },
-    { "close"     , lua_descriptor_close     },
-    { "send"      , lua_descriptor_send      },
-    { "will_echo" , lua_descriptor_will_echo },
+    { "__index"   , lua_descriptor_index      },
+    { "__newindex", lua_descriptor_newindex   },
+    { "close"     , lua_descriptor_close      },
+    { "extra_data", lua_descriptor_extra_data },
+    { "send"      , lua_descriptor_send       },
+    { "will_echo" , lua_descriptor_will_echo  },
   };
   luaL_register(lua, NULL, descriptor_methods);
   lua_pop(lua, 1);
@@ -137,8 +146,10 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_State* thread = lua_newthread(lua);
   descriptor->thread_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
 
+  lua_newtable(lua);
   lua_pushliteral(lua, "? ");
-  descriptor->prompt_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+  lua_setfield(lua, -2, "prompt");
+  descriptor->extra_data_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
 
   /* Call mud.descriptor.on_open in the new thread. */
   lua_getglobal(thread, "mud");

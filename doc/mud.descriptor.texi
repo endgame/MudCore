@@ -6,6 +6,10 @@ operations. Each client gets its own lua thread, and can block until
 input is available. Descriptors are exposed as a Lua userdatum with type
 @code{mudcore.descriptor}.
 
+Descriptors can store additional fields beyond those listed here, as
+each descriptor contains its own private table. Access these fields as
+if the descriptor was a regular table.
+
 @defun mud.descriptor.on_close (@var{descriptor})
 This callback, if defined, is called when a descriptor closes. The
 descriptor won't be suitable for writing at this point, but here's a
@@ -36,6 +40,12 @@ shouldn't write a newline after you're finished sending.
 Put a descriptor into the @emph{draining} state; no new input can be
 received and the descriptor will close after all pending output has been
 sent.
+@end defmethod
+
+@defmethod mudcore.descriptor extra_data ()
+Get the descriptor's extra_data table directly. Unless you're passing
+the table to @code{pairs()} or @code{ipairs()}, you can just use table
+syntax on the descriptor object itself.
 @end defmethod
 
 @defmethod mudcore.descriptor send (@var{str})

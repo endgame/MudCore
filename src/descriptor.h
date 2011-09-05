@@ -94,12 +94,6 @@ enum descriptor_state {
  ** A newline needs to be sent before fresh output if a complete
  ** command wasn't entered.
  ** @end deftypeivar
- ** @deftypeivar {struct descriptor} gboolean will_echo
- ** Tracks whether or not the descriptor is doing local echo. Note
- ** that echoing doesn't happen automatically, so that things like
- ** password input work correctly. User code should echo what is deems
- ** necessary.
- ** @end deftypeivar
  ** @deftypeivar {struct descriptor} {struct timeval} next_command
  ** If non-zero, the next command will not be processed until after
  ** this time.
@@ -127,7 +121,6 @@ struct descriptor {
   gboolean skip_until_newline;
   gboolean needs_prompt;
   gboolean needs_newline;
-  gboolean will_echo;
   struct timeval next_command;
   struct buffer* line_buffer;
   struct buffer* output_buffer;

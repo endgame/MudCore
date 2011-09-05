@@ -180,17 +180,9 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
     descriptor_buffer_output(descriptor, event->data.buffer, event->data.size);
     break;
   case TELNET_EV_DO:
-    switch (event->neg.telopt) {
-    case TELNET_TELOPT_COMPRESS2:
+    if (event->neg.telopt == TELNET_TELOPT_COMPRESS2) {
       telnet_begin_compress2(descriptor->telnet);
-      break;
-    case TELNET_TELOPT_ECHO:
-      descriptor->will_echo = TRUE;
-      break;
     }
-    break;
-  case TELNET_EV_DONT:
-    if (event->neg.telopt == TELNET_TELOPT_ECHO) descriptor->will_echo = FALSE;
     break;
   case TELNET_EV_WARNING:
     WARN("libtelnet warning: %s", event->error.msg);
@@ -267,7 +259,6 @@ void descriptor_new_fd(gint fd) {
   descriptor->skip_until_newline = FALSE;
   descriptor->needs_prompt = TRUE;
   descriptor->needs_newline = FALSE;
-  descriptor->will_echo = FALSE;
   descriptor->next_command.tv_sec = 0;
   descriptor->next_command.tv_usec = 0;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
@@ -389,9 +380,7 @@ void descriptor_drain(struct descriptor* descriptor) {
 }
 
 void descriptor_will_echo(struct descriptor* descriptor, gboolean will) {
-  if (will != descriptor->will_echo) {
-    telnet_negotiate(descriptor->telnet,
-                     will ? TELNET_WILL : TELNET_WONT,
-                     TELNET_TELOPT_ECHO);
-  }
+  telnet_negotiate(descriptor->telnet,
+                   will ? TELNET_WILL : TELNET_WONT,
+                   TELNET_TELOPT_ECHO);
 }

@@ -6,6 +6,11 @@
 
 @include version.texi
 
+@dircategory
+@direntry
+* mudcore: (mudcore).           MudCore - A lua-powered MUD (telnet) server.
+@end direntry
+
 @copying
 This manual is for MudCore, version @value{VERSION}.
 

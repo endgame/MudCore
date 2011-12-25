@@ -55,7 +55,7 @@ struct timeval* timeval_add_delay(struct timeval* t, gdouble delay);
 gint timeval_compare(const struct timeval* t1, const struct timeval* t2);
 
 /**
- ** @deftypefun {struct timeval*} timeval_add @
+ ** @deftypefun {struct timeval*} timeval_sub @
  **   (struct timeval*       @var{t1},        @
  **    const struct timeval* @var{t2})
  ** Subtract @var{t2} from @var{t1} and return @var{t1}. If @var{t1}

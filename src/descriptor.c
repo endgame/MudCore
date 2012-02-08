@@ -1,5 +1,5 @@
 /* MudCore - a simple, lua-scripted MUD server
- * Copyright (C) 2011  Jack Kelly <jack@jackkelly.name>
+ * Copyright (C) 2011, 2012  Jack Kelly <jack@jackkelly.name>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -259,8 +259,8 @@ void descriptor_new_fd(gint fd) {
   descriptor->skip_until_newline = FALSE;
   descriptor->needs_prompt = TRUE;
   descriptor->needs_newline = FALSE;
-  descriptor->next_command.tv_sec = 0;
-  descriptor->next_command.tv_usec = 0;
+  descriptor->delay_end.tv_sec = 0;
+  descriptor->delay_end.tv_usec = 0;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
   descriptor->output_buffer = buffer_new(OUTPUT_BUFFER_SIZE);
   descriptor->command_queue = queue_new(COMMAND_QUEUE_SIZE);
@@ -318,15 +318,24 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
   }
 }
 
-void descriptor_handle_commands(const struct timeval* start) {
+void descriptor_handle_commands(void) {
   DESCRIPTOR_FOREACH(iter, descriptor) {
     if (descriptor->state == DESCRIPTOR_STATE_OPEN
-        && descriptor->command_queue->used > 0
-        && timeval_compare(start, &descriptor->next_command) > 0) {
+        && descriptor->command_queue->used > 0) {
       descriptor->needs_prompt = TRUE;
       gchar* command = queue_pop_front(descriptor->command_queue);
-      lua_descriptor_resume(descriptor, command);
+      lua_descriptor_command(descriptor, command);
       g_free(command);
+    }
+  }
+}
+
+void descriptor_handle_delays(const struct timeval* start) {
+  DESCRIPTOR_FOREACH(iter, descriptor) {
+    if (descriptor->state == DESCRIPTOR_STATE_DELAYING
+        && timeval_compare(start, &descriptor->delay_end) > 0) {
+      descriptor->state = DESCRIPTOR_STATE_OPEN;
+      lua_descriptor_continue(descriptor);
     }
   }
 }

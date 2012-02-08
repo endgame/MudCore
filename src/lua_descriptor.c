@@ -81,6 +81,17 @@ static gint lua_descriptor_newindex(lua_State* lua) {
   return 0;
 }
 
+static gint lua_descriptor_delay(lua_State* lua) {
+  lua_Number delay = luaL_checknumber(lua, 1);
+  if (delay <= 0) {
+    WARN("Argument to mud.descriptor.delay should be > 0.");
+    return 0;
+  } else {
+    lua_pushvalue(lua, 1);
+    return lua_yield(lua, 1);
+  }
+}
+
 static gint lua_descriptor_on_open(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) {
@@ -92,10 +103,6 @@ static gint lua_descriptor_on_open(lua_State* lua) {
 }
 
 static gint lua_descriptor_read(lua_State* lua) {
-  if (lua_gettop(lua) == 1 && luaL_checknumber(lua, 1)) {
-    lua_pushvalue(lua, -1);
-    return lua_yield(lua, 1);
-  }
   return lua_yield(lua, 0);
 }
 
@@ -120,6 +127,7 @@ void lua_descriptor_init(lua_State* lua) {
 
   lua_newtable(lua);
   static const luaL_Reg descriptor_funcs[] = {
+    { "delay"      , lua_descriptor_delay       },
     { "on_open"    , lua_descriptor_on_open     },
     { "read"       , lua_descriptor_read        },
     { NULL         , NULL                       }
@@ -139,6 +147,33 @@ void lua_descriptor_init(lua_State* lua) {
   };
   luaL_register(lua, NULL, descriptor_methods);
   lua_pop(lua, 1);
+}
+
+/* Wake up the lua thread corresponding to descriptor. nargs is the
+   number of arguments to return from the wrapped call to yield. */
+static void lua_descriptor_resume(struct descriptor* descriptor,
+                                  lua_State* thread,
+                                  gint nargs) {
+  switch (lua_resume(thread, nargs)) {
+  case 0: /* Terminated. */
+    descriptor_drain(descriptor);
+    return;
+  case LUA_YIELD:
+    if (lua_gettop(thread) == 1 && lua_isnumber(thread, 1)) {
+      lua_Number delay = lua_tonumber(thread, 1);
+      if (delay > 0) {
+        descriptor->state = DESCRIPTOR_STATE_DELAYING;
+        gettimeofday(&descriptor->delay_end, NULL);
+        timeval_add_delay(&descriptor->delay_end, delay);
+      }
+    }
+    lua_settop(thread, 0);
+    break;
+  default: /* Error. */
+    ERROR("Error in lua code: %s", lua_tostring(thread, -1));
+    descriptor_drain(descriptor);
+    break;
+  }
 }
 
 void lua_descriptor_start(struct descriptor* descriptor) {
@@ -164,11 +199,11 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_setmetatable(thread, -2);
   lua_pushvalue(thread, -1);
   descriptor->fd_ref = luaL_ref(thread, LUA_REGISTRYINDEX);
-  lua_descriptor_resume(descriptor, NULL);
+  lua_descriptor_resume(descriptor, thread, 1);
 }
 
-void lua_descriptor_resume(struct descriptor* descriptor,
-                           const gchar* command) {
+void lua_descriptor_command(struct descriptor* descriptor,
+                            const gchar* command) {
   lua_State* lua = lua_api_get();
   lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
   lua_State* thread;
@@ -176,30 +211,21 @@ void lua_descriptor_resume(struct descriptor* descriptor,
     ERROR("Descriptor has lost its thread!");
     descriptor_close(descriptor);
   } else {
-    if (command != NULL) lua_pushstring(thread, command);
-    /* Descriptor threads are started with no string argument, but
-       have the fd number as the only argument instead. Therefore,
-       it's always safe to pass 1 to lua_resume. */
-    switch (lua_resume(thread, 1)) {
-    case 0: /* Terminated. */
-      descriptor_drain(descriptor);
-      return;
-    case LUA_YIELD:
-      if (lua_gettop(thread) == 1
-          && lua_isnumber(thread, 1)) {
-        lua_Number delay = lua_tonumber(thread, 1);
-        if (delay > 0) {
-          gettimeofday(&descriptor->next_command, NULL);
-          timeval_add_delay(&descriptor->next_command, delay);
-        }
-      }
-      lua_settop(thread, 0);
-      break;
-    default: /* Error. */
-      ERROR("Error in lua code: %s", lua_tostring(thread, -1));
-      descriptor_drain(descriptor);
-      break;
-    }
+    lua_pushstring(thread, command);
+    lua_descriptor_resume(descriptor, thread, 1);
+  }
+  lua_pop(lua, 1);
+}
+
+void lua_descriptor_continue(struct descriptor* descriptor) {
+  lua_State* lua = lua_api_get();
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
+  lua_State* thread;
+  if (lua_isnil(lua, -1) || (thread = lua_tothread(lua, -1)) == NULL) {
+    ERROR("Descriptor has lost its thread!");
+    descriptor_close(descriptor);
+  } else {
+    lua_descriptor_resume(descriptor, thread, 0);
   }
   lua_pop(lua, 1);
 }

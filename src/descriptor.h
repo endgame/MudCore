@@ -1,5 +1,5 @@
 /* MudCore - a simple, lua-scripted MUD server
- * Copyright (C) 2011  Jack Kelly <jack@jackkelly.name>
+ * Copyright (C) 2011, 2012  Jack Kelly <jack@jackkelly.name>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,11 @@ struct queue;
  ** Descriptor is able to read and write.
  ** @end deftp
  **
+ ** @deftp {enum descriptor_state} DESCRIPTOR_STATE_DELAYING
+ ** Descriptor is being delayed: it can be written to but not read
+ ** from until after the descriptor's delay_end.
+ ** @end deftp
+ **
  ** @deftp {enum descriptor_state} DESCRIPTOR_STATE_DRAINING
  ** Descriptor is unable to read, and will close after emptying its
  ** output buffer.
@@ -56,6 +61,7 @@ struct queue;
  **/
 enum descriptor_state {
   DESCRIPTOR_STATE_OPEN,
+  DESCRIPTOR_STATE_DELAYING,
   DESCRIPTOR_STATE_DRAINING,
   DESCRIPTOR_STATE_CLOSED
 };
@@ -94,9 +100,8 @@ enum descriptor_state {
  ** A newline needs to be sent before fresh output if a complete
  ** command wasn't entered.
  ** @end deftypeivar
- ** @deftypeivar {struct descriptor} {struct timeval} next_command
- ** If non-zero, the next command will not be processed until after
- ** this time.
+ ** @deftypeivar {struct descriptor} {struct timeval} delay_end
+ ** If non-zero, the thread will not be awoken until after this time.
  ** @end deftypeivar
  ** @deftypeivar {struct descriptor} {struct buffer*} line_buffer
  ** Buffer for the current line under assembly.
@@ -121,7 +126,7 @@ struct descriptor {
   gboolean skip_until_newline;
   gboolean needs_prompt;
   gboolean needs_newline;
-  struct timeval next_command;
+  struct timeval delay_end;
   struct buffer* line_buffer;
   struct buffer* output_buffer;
   struct queue* command_queue;
@@ -179,12 +184,21 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
 
 /**
  ** @deftypefun void descriptor_handle_commands @
- **   (struct timeval* @var{start})
- ** Process one command on all descriptors that have pending commands
- ** and are not waiting for the next_command delay to expire.
+ **   ()
+ ** Process one command on all open descriptors that have pending
+ ** commands.
  ** @end deftypefun
  **/
-void descriptor_handle_commands(const struct timeval* start);
+void descriptor_handle_commands(void);
+
+/**
+ ** @deftypefun void descriptor_handle_delays @
+ **   (struct timeval* @var{start})
+ ** Move any descriptors that are finished delaying into the open
+ ** state and awaken their thread.
+ ** @end deftypefun
+ **/
+void descriptor_handle_delays(const struct timeval* start);
 
 /**
  ** @deftypefun void descriptor_send_prompt @

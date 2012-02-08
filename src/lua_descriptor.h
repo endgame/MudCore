@@ -1,5 +1,5 @@
 /* MudCore - a simple, lua-scripted MUD server
- * Copyright (C) 2011  Jack Kelly <jack@jackkelly.name>
+ * Copyright (C) 2011, 2012  Jack Kelly <jack@jackkelly.name>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,14 +47,23 @@ void lua_descriptor_init(lua_State* lua);
 void lua_descriptor_start(struct descriptor* descriptor);
 
 /**
- ** @deftypefun void lua_descriptor_resume  @
- **   (struct descriptor* @var{descriptor}, @
+ ** @deftypefun void lua_descriptor_command  @
+ **   (struct descriptor* @var{descriptor},  @
  **    const gchar*       @var{command})
- ** Resume a descriptor's thread. If @var{command} is not @code{NULL},
- ** it is sent to the descriptor as the next line of input.
+ ** Resume a descriptor's thread with @var{command} sent to the
+ ** descriptor as the next line of input.
  ** @end deftypefun
  **/
-void lua_descriptor_resume(struct descriptor* descriptor,
-                           const gchar* command);
+void lua_descriptor_command(struct descriptor* descriptor,
+                            const gchar* command);
+
+/**
+ ** @deftypefun void lua_descriptor_continue @
+ **   (struct descriptor* @var{descriptor})
+ ** Resume a descriptor's thread with nothing yielded (i.e., from a
+ ** delay).
+ ** @end deftypefun
+ **/
+void lua_descriptor_continue(struct descriptor* descriptor);
 
 #endif

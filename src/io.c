@@ -1,5 +1,5 @@
 /* MudCore - a simple, lua-scripted MUD server
- * Copyright (C) 2011  Jack Kelly <jack@jackkelly.name>
+ * Copyright (C) 2011, 2012  Jack Kelly <jack@jackkelly.name>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,8 @@ void io_mainloop(gint server) {
     descriptor_handle_pollitems(pollitems, &poll_count);
     lua_zmq_handle_pollitems(pollitems, &poll_count);
     if (poll_count != 0) WARN("Skipped %d poll items.", poll_count);
-    descriptor_handle_commands(&start);
+    descriptor_handle_delays(&start);
+    descriptor_handle_commands();
     descriptor_send_prompts();
 
     /* Sleep out remaining time on this pulse. */

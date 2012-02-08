@@ -81,7 +81,7 @@ descriptions and what is returned for each.
 Receive a message on the socket and return it as a string. @var{flags}
 is a combination of zero or more of the following flags:
 @itemize
-@item @code{ZMQ_NOBLOCK}
+@item @code{mud.zmq.NOBLOCK}
 @end itemize
 See the man page for @code{zmq_recv} for a description of each flag.
 @end defmethod

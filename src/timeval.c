@@ -30,7 +30,7 @@ struct timeval* timeval_add_delay(struct timeval* t, gdouble delay) {
   gint sec = delay;
   gint usec = (delay - sec) * 1000000;
   t->tv_sec += sec + (t->tv_usec + usec) / 1000000;
-  t->tv_usec =(t->tv_usec + usec) % 1000000;
+  t->tv_usec = (t->tv_usec + usec) % 1000000;
   return t;
 }
 

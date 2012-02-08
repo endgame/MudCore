@@ -1,5 +1,5 @@
 /* MudCore - a simple, lua-scripted MUD server
- * Copyright (C) 2011  Jack Kelly <jack@jackkelly.name>
+ * Copyright (C) 2011, 2012  Jack Kelly <jack@jackkelly.name>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@
 
 #define DESCRIPTOR_TYPE "mudcore.descriptor"
 
-/* If the value at index is an integer and that integer is an active
-   client FD, return its descriptor. Otherwise, return NULL. Signal a
-   Lua error if the value at index is not an integer. */
+/* If the value at index a userdata that represents a descriptor,
+   return that descriptor. Otherwise, return NULL. Signal a Lua error
+   if the value at index is not of the correct type. */
 static struct descriptor* lua_descriptor_get(lua_State* lua, gint index) {
   gint fd = *(gint*)luaL_checkudata(lua, index, DESCRIPTOR_TYPE);
   return descriptor_get(fd);

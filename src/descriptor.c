@@ -20,6 +20,7 @@
 #endif
 #include "descriptor.h"
 
+#include <arpa/inet.h>
 #include <lauxlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -166,6 +167,18 @@ static void descriptor_handle_input(struct descriptor* descriptor,
   }
 }
 
+/* Switch off NAWS (RFC 1073) and remove the "size" field from the lua
+   descriptor. */
+static void descriptor_disable_naws(struct descriptor* descriptor) {
+  lua_State* lua = lua_api_get();
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
+  lua_pushliteral(lua, "size");
+  lua_pushnil(lua);
+  lua_rawset(lua, -3);
+  lua_pop(lua, 1);
+  telnet_negotiate(descriptor->telnet, TELNET_DONT, TELNET_TELOPT_NAWS);
+}
+
 /* Callback from libtelnet when something interesting happens. */
 static void descriptor_on_telnet_event(telnet_t* telnet,
                                        telnet_event_t* event,
@@ -182,6 +195,31 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
   case TELNET_EV_DO:
     if (event->neg.telopt == TELNET_TELOPT_COMPRESS2) {
       telnet_begin_compress2(descriptor->telnet);
+    }
+    break;
+  case TELNET_EV_WONT:
+    if (event->neg.telopt == TELNET_TELOPT_NAWS) {
+      descriptor_disable_naws(descriptor);
+    }
+    break;
+  case TELNET_EV_SUBNEGOTIATION:
+    if (event->sub.telopt == TELNET_TELOPT_NAWS) {
+      if (event->sub.size != 4) {
+        WARN("Malformed NAWS option. Disabling NAWS on fd %d", descriptor->fd);
+        descriptor_disable_naws(descriptor);
+        break;
+      }
+
+      lua_State* lua = lua_api_get();
+      lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
+      lua_pushliteral(lua, "size");
+      lua_createtable(lua, 2, 0);
+      lua_pushinteger(lua, htons(*(guint16*)event->sub.buffer));
+      lua_rawseti(lua, -2, 0);
+      lua_pushinteger(lua, htons(*(guint16*)(event->sub.buffer + 2)));
+      lua_rawseti(lua, -2, 1);
+      lua_rawset(lua, -3);
+      lua_pop(lua, 1);
     }
     break;
   case TELNET_EV_WARNING:
@@ -241,6 +279,7 @@ void descriptor_new_fd(gint fd) {
   static const telnet_telopt_t telopts[] = {
     { TELNET_TELOPT_ECHO     , TELNET_WILL, TELNET_DONT },
     { TELNET_TELOPT_COMPRESS2, TELNET_WILL, TELNET_DONT },
+    { TELNET_TELOPT_NAWS     , TELNET_WONT, TELNET_DO   },
     {                      -1,           0,           0 }
   };
   descriptor->telnet = telnet_init(telopts,
@@ -268,6 +307,7 @@ void descriptor_new_fd(gint fd) {
 
   /* Offer supported telnet options. */
   telnet_negotiate(descriptor->telnet, TELNET_WILL, TELNET_TELOPT_COMPRESS2);
+  telnet_negotiate(descriptor->telnet, TELNET_DO, TELNET_TELOPT_NAWS);
   lua_descriptor_start(descriptor);
 }
 

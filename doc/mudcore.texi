@@ -14,7 +14,7 @@
 @copying
 This manual is for MudCore, version @value{VERSION}.
 
-Copyright @copyright{} 2011 Jack Kelly.
+Copyright @copyright{} 2011, 2012 Jack Kelly.
 
 @quotation
 This work is licensed under the Creative Commons Attribution-ShareAlike

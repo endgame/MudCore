@@ -22,7 +22,7 @@ Your code needs to define this function. It is the entry point for new
 threads. If you don't, clients will be dropped.
 @end defun
 
-@defun mud.descriptor.delay(@var{delay})
+@defun mud.descriptor.delay (@var{delay})
 Pause this thread until @var{delay} seconds have passed. You'll rarely
 want to use this function, since it looks like lag on the client end.
 @end defun
@@ -37,6 +37,21 @@ Each descriptor has an independent callback for sending a prompt. This
 is either a string or a function of one argument, the descriptor. The
 server ensures that any output sent starts on a fresh line, and you
 shouldn't write a newline after you're finished sending.
+@end defivar
+
+@defivar mudcore.descriptor size
+If the client connected to the descriptor supports RFC 1073 (Telnet
+window size option), this is a two-element table @code{@{width,
+height@}} containing the client window's width and height in
+characters. If not, it is @code{nil}.
+
+Because client windows can resize at any time, it's worth checking this
+frequently, particularly before doing any sort of paging on the client's
+behalf.
+
+This field will be overwritten by the server every time it receives a
+new NAWS message. If the client disables NAWS, it will be set back to
+@code{nil}.
 @end defivar
 
 @defmethod mudcore.descriptor close ()

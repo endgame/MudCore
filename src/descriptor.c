@@ -172,7 +172,10 @@ static void descriptor_handle_input(struct descriptor* descriptor,
 static void descriptor_disable_naws(struct descriptor* descriptor) {
   lua_State* lua = lua_api_get();
   lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
-  lua_pushliteral(lua, "size");
+  lua_pushliteral(lua, "width");
+  lua_pushnil(lua);
+  lua_rawset(lua, -3);
+  lua_pushliteral(lua, "height");
   lua_pushnil(lua);
   lua_rawset(lua, -3);
   lua_pop(lua, 1);
@@ -212,12 +215,11 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
 
       lua_State* lua = lua_api_get();
       lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
-      lua_pushliteral(lua, "size");
-      lua_createtable(lua, 2, 0);
+      lua_pushliteral(lua, "width");
       lua_pushinteger(lua, htons(*(guint16*)event->sub.buffer));
-      lua_rawseti(lua, -2, 0);
+      lua_rawset(lua, -3);
+      lua_pushliteral(lua, "height");
       lua_pushinteger(lua, htons(*(guint16*)(event->sub.buffer + 2)));
-      lua_rawseti(lua, -2, 1);
       lua_rawset(lua, -3);
       lua_pop(lua, 1);
     }

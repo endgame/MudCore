@@ -39,18 +39,18 @@ server ensures that any output sent starts on a fresh line, and you
 shouldn't write a newline after you're finished sending.
 @end defivar
 
-@defivar mudcore.descriptor size
+@defivar mudcore.descriptor width
+@defivarx mudcore.descriptor height
 If the client connected to the descriptor supports RFC 1073 (Telnet
-window size option), this is a two-element table @code{@{width,
-height@}} containing the client window's width and height in
-characters. If not, it is @code{nil}.
+window size option), these fields contain the client window's width and
+height in characters. If not, both are @code{nil}.
 
-Because client windows can resize at any time, it's worth checking this
-frequently, particularly before doing any sort of paging on the client's
-behalf.
+Because client windows can resize at any time, it's worth checking these
+values frequently, particularly before doing any sort of paging on the
+client's behalf.
 
-This field will be overwritten by the server every time it receives a
-new NAWS message. If the client disables NAWS, it will be set back to
+These fields will be overwritten by the server every time it receives a
+new NAWS message. If the client disables NAWS, they will be set back to
 @code{nil}.
 @end defivar
 

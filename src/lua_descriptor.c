@@ -30,7 +30,7 @@
 
 #define DESCRIPTOR_TYPE "mudcore.descriptor"
 
-/* If the value at index a userdata that represents a descriptor,
+/* If the value at index is a userdatum that represents a descriptor,
    return that descriptor. Otherwise, return NULL. Signal a Lua error
    if the value at index is not of the correct type. */
 static struct descriptor* lua_descriptor_get(lua_State* lua, gint index) {

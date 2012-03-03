@@ -1,3 +1,4 @@
 TODO:
-- W32 port
+- async reverse DNS lookup?
+- W32 port?
   - zmq_getopt returns SOCKET for ZMQ_FD

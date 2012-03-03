@@ -1,4 +1,5 @@
 ## Process this file with automake to generate Makefile.in
+AM_MAKEINFOHTMLFLAGS = --no-headers --no-split
 GENERATE_TEXI = $(AM_V_GEN)$(SED) -n \
 	-e '/^ \*\*\// { s/.*//; p; }' \
 	-e '/^ \*\* / { s/^ \*\* //; p; }' \

@@ -20,6 +20,7 @@
 #endif
 #include "log.h"
 
+#include <glib/gstdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,8 +41,24 @@ static void log_close(void) {
   log_file = NULL;
 }
 
+static void log_mkdir(void) {
+  /* Note that we can't use normal logging functions here or it would
+     try to rotate again. */
+  if (g_mkdir(LOG_DIR, (S_IRWXU
+                        | S_IRGRP | S_IXGRP
+                        | S_IROTH | S_IXOTH)) == -1) {
+    if (errno != EEXIST) {
+      perror("log_rotate: mkdir");
+    } else if (!g_file_test(LOG_DIR, G_FILE_TEST_IS_DIR)) {
+      fprintf(stderr,
+              "Can't create log directory - something's in the way.\n");
+    }
+  }
+}
+
 static void log_rotate(void) {
-  if (log_file != NULL) log_close();
+  if (log_file != NULL) log_close(); else log_mkdir();
+
   time_t now = time(NULL);
   gchar today_str[9]; /* "YYYYMMDD" + \0 */
   strftime(today_str, sizeof(today_str), "%Y%m%d", localtime(&now));

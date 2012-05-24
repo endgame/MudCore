@@ -144,6 +144,7 @@ void lua_descriptor_init(lua_State* lua) {
     { "extra_data", lua_descriptor_extra_data },
     { "send"      , lua_descriptor_send       },
     { "will_echo" , lua_descriptor_will_echo  },
+    { NULL        , NULL                      }
   };
   luaL_register(lua, NULL, descriptor_methods);
   lua_pop(lua, 1);

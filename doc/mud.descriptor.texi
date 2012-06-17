@@ -71,6 +71,11 @@ the table to @code{pairs()} or @code{ipairs()}, you can just use table
 syntax on the descriptor object itself.
 @end defmethod
 
+@defmethod mudcore.descriptor is_active ()
+Return @code{true} if and only if the descriptor corresponds to the
+currently executing thread. Return @code{false} in all other cases.
+@end defmethod
+
 @defmethod mudcore.descriptor send (@var{str})
 Send @var{str} to the descriptor.
 @end defmethod

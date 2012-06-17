@@ -70,6 +70,24 @@ static gint lua_descriptor_index(lua_State* lua) {
   return 1;
 }
 
+static gint lua_descriptor_is_active(lua_State* lua) {
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+  if (descriptor == NULL) {
+    lua_pushboolean(lua, FALSE);
+    return 1;
+  }
+
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
+  lua_State *thread = lua_tothread(lua, -1);
+  if (thread == NULL) {
+    lua_pushboolean(lua, FALSE);
+    return 1;
+  }
+
+  lua_pushboolean(lua, lua == thread);
+  return 1;
+}
+
 static gint lua_descriptor_newindex(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) {
@@ -142,6 +160,7 @@ void lua_descriptor_init(lua_State* lua) {
     { "__newindex", lua_descriptor_newindex   },
     { "close"     , lua_descriptor_close      },
     { "extra_data", lua_descriptor_extra_data },
+    { "is_active" , lua_descriptor_is_active  },
     { "send"      , lua_descriptor_send       },
     { "will_echo" , lua_descriptor_will_echo  },
     { NULL        , NULL                      }

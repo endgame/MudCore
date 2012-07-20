@@ -108,11 +108,11 @@ Shut down the mud.
 @end defun
 
 @menu
-* mud.args::                    Access the command-line arguments.
-* mud.descriptor::              Socket (descriptor) operations.
-* mud.log::                     Logging facility.
-* mud.timer::                   Set functions to be called in the future.
-* mud.zmq::                     Communicate with external programs using ZeroMQ.
+* mud.args::                   Access the command-line arguments.
+* mud.descriptor::             Socket (descriptor) operations.
+* mud.log::                    Logging facility.
+* mud.timer::                  Set functions to be called in the future.
+* mud.zmq::                    Communicate with external programs using ZeroMQ.
 @end menu
 
 @include mud.args.texi

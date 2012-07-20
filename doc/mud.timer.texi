@@ -3,7 +3,7 @@
 
 The @code{mud.timer} table holds functions for creating and destroying
 timers: lua functions that are set to be called at some point in the
-future. Currently, checking for timers to fire is @code{O(n)} in the
+future. Currently, checking for timers to fire is @math{O(n)} in the
 number of active timers.
 
 @defun mud.timer.new (@var{delay}, @var{callback})

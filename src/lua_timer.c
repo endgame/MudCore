@@ -54,6 +54,9 @@ static gint lua_timer_cancel(lua_State* lua) {
   gint token = *(gint*)luaL_checkudata(lua, 1, TIMER_TYPE);
   struct timer_entry* timer = g_hash_table_lookup(timers,
                                                   GINT_TO_POINTER(token));
+  if (timer == NULL) {
+    return luaL_error(lua, "timer:cancel(): Call to an expired timer.");
+  }
   timer->dead = TRUE;
   return 0;
 }
@@ -70,6 +73,22 @@ static gint lua_timer_new(lua_State* lua) {
   *token = t->func;
   luaL_getmetatable(lua, TIMER_TYPE);
   lua_setmetatable(lua, -2);
+  return 1;
+}
+
+static gint lua_timer_remaining(lua_State* lua) {
+  gint token = *(gint*)luaL_checkudata(lua, 1, TIMER_TYPE);
+  struct timer_entry* timer = g_hash_table_lookup(timers,
+                                                  GINT_TO_POINTER(token));
+  if (timer == NULL) {
+    return luaL_error(lua, "timer:remaining(): Call to an expired timer.");
+  }
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  struct timeval delta = timer->time;
+  timeval_sub(&delta, &now);
+  gdouble rv = delta.tv_sec + (gdouble)delta.tv_usec / 1000000;
+  lua_pushnumber(lua, rv);
   return 1;
 }
 
@@ -92,8 +111,9 @@ void lua_timer_init(lua_State* lua) {
 
   luaL_newmetatable(lua, TIMER_TYPE);
   static const luaL_Reg timer_methods[] = {
-    { "cancel", lua_timer_cancel },
-    { NULL    , NULL             }
+    { "cancel"   , lua_timer_cancel    },
+    { "remaining", lua_timer_remaining },
+    { NULL       , NULL                }
   };
   lua_newtable(lua);
   luaL_register(lua, NULL, timer_methods);
@@ -109,7 +129,8 @@ void lua_timer_execute(const struct timeval* start) {
   lua_State* lua = lua_api_get();
   lua_Number newdelay;
   TIMER_FOREACH(iter, timer) {
-    if (timeval_compare(start, &timer->time) > 0) {
+    if (!timer->dead
+        && timeval_compare(start, &timer->time) > 0) {
       lua_rawgeti(lua, LUA_REGISTRYINDEX, timer->func);
       if (lua_pcall(lua, 0, 1, 0) != 0) {
         const gchar* what = lua_tostring(lua, -1);

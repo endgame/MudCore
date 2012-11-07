@@ -29,7 +29,9 @@ function mud.descriptor.read_name(desc)
 end
 
 function mud.descriptor.on_close(desc)
-   PLAYERS[desc.name] = nil
+   if desc.name then
+      PLAYERS[desc.name] = nil
+   end
 end
 
 -- The chat mainloop.

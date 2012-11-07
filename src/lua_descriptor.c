@@ -60,7 +60,9 @@ static gint lua_descriptor_index(lua_State* lua) {
     lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
     lua_pushvalue(lua, 2);
     lua_gettable(lua, -2);
+    lua_remove(lua, -2);
     if (lua_isnil(lua, -1) && lua_getmetatable(lua, 1) != 0) {
+      lua_remove(lua, -2);
       lua_pushvalue(lua, 2);
       lua_rawget(lua, -2);
     }

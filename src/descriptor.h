@@ -264,16 +264,6 @@ void descriptor_delay(struct descriptor* descriptor, gdouble delay);
 void descriptor_drain(struct descriptor* descriptor);
 
 /**
- ** @deftypefun gboolean descriptor_is_active @
- **   (struct descriptor* @var{descriptor},   @
- **    lua_State*         @var{lua})
- ** Return @code{TRUE} if and only if @var{lua} is the lua state that
- ** correspond's to @var{descriptor}'s thread.
- ** @end deftypefun
- **/
-gboolean descriptor_is_active(struct descriptor* descriptor, lua_State* lua);
-
-/**
  ** @deftypefun void descriptor_will_echo   @
  **   (struct descriptor* @var{descriptor}, @
  **    gboolean           @var{will})

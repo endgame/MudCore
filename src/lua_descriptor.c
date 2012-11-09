@@ -72,6 +72,17 @@ static gint lua_descriptor_index(lua_State* lua) {
   return 1;
 }
 
+/* Return TRUE iff the descriptor's thread is the given lua state. */
+static gboolean descriptor_is_active(struct descriptor* descriptor,
+                                     lua_State* lua) {
+  if (descriptor == NULL || lua == NULL) return FALSE;
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
+  lua_State* thread = lua_tothread(lua, -1);
+  gboolean rv = lua == thread;
+  lua_pop(lua, 1);
+  return rv;
+}
+
 static gint lua_descriptor_is_active(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   lua_pushboolean(lua, descriptor_is_active(descriptor, lua));

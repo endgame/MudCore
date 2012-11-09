@@ -454,15 +454,6 @@ void descriptor_drain(struct descriptor* descriptor) {
   descriptor->state = DESCRIPTOR_STATE_DRAINING;
 }
 
-gboolean descriptor_is_active(struct descriptor* descriptor, lua_State* lua) {
-  if (descriptor == NULL || lua == NULL) return FALSE;
-  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
-  lua_State* thread = lua_tothread(lua, -1);
-  gboolean rv = lua == thread;
-  lua_pop(lua, 1);
-  return rv;
-}
-
 void descriptor_will_echo(struct descriptor* descriptor, gboolean will) {
   telnet_negotiate(descriptor->telnet,
                    will ? TELNET_WILL : TELNET_WONT,

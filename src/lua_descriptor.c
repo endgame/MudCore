@@ -38,9 +38,21 @@ static struct descriptor* lua_descriptor_get(lua_State* lua, gint index) {
   return descriptor_get(fd);
 }
 
+/* Return TRUE iff the descriptor's thread is the given lua state. */
+static gboolean descriptor_is_active(struct descriptor* descriptor,
+                                     lua_State* lua) {
+  if (descriptor == NULL || lua == NULL) return FALSE;
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
+  lua_State* thread = lua_tothread(lua, -1);
+  gboolean rv = lua == thread;
+  lua_pop(lua, 1);
+  return rv;
+}
+
 static gint lua_descriptor_close(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) descriptor_drain(descriptor);
+  if (descriptor_is_active(descriptor, lua)) return lua_yield(lua, 0);
   return 0;
 }
 
@@ -70,17 +82,6 @@ static gint lua_descriptor_index(lua_State* lua) {
     lua_pushnil(lua);
   }
   return 1;
-}
-
-/* Return TRUE iff the descriptor's thread is the given lua state. */
-static gboolean descriptor_is_active(struct descriptor* descriptor,
-                                     lua_State* lua) {
-  if (descriptor == NULL || lua == NULL) return FALSE;
-  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
-  lua_State* thread = lua_tothread(lua, -1);
-  gboolean rv = lua == thread;
-  lua_pop(lua, 1);
-  return rv;
 }
 
 static gint lua_descriptor_is_active(lua_State* lua) {

@@ -17,10 +17,7 @@ if the descriptor was a regular table.
 Put a descriptor into the @emph{draining} state; no new input can be
 received and the descriptor will close after all pending output has been
 sent. If the descriptor being closed belongs to the current thread, that
-thread will continue to execute until explicitly stopped (by reaching
-the end of @code{mud.descriptor.on_open()}, raising an uncaught error or
-yielding). To stop the current thread, close its descriptor and then
-call @code{coroutine.yield()}.
+thread will be stopped.
 @end defmethod
 
 @defmethod mudcore.descriptor delay (@var{delay})

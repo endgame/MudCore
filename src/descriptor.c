@@ -300,6 +300,7 @@ void descriptor_new_fd(gint fd) {
   descriptor->skip_until_newline = FALSE;
   descriptor->needs_prompt = TRUE;
   descriptor->needs_newline = FALSE;
+  descriptor->self_delayed = FALSE;
   descriptor->delay_end.tv_sec = 0;
   descriptor->delay_end.tv_usec = 0;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
@@ -377,7 +378,10 @@ void descriptor_handle_delays(const struct timeval* start) {
     if (descriptor->state == DESCRIPTOR_STATE_DELAYING
         && timeval_compare(start, &descriptor->delay_end) > 0) {
       descriptor->state = DESCRIPTOR_STATE_OPEN;
-      lua_descriptor_continue(descriptor);
+      if (descriptor->self_delayed) {
+        descriptor->self_delayed = FALSE;
+        lua_descriptor_resume(descriptor, 0);
+      }
     }
   }
 }
@@ -426,8 +430,37 @@ void descriptor_close(struct descriptor* descriptor) {
   socket_close(descriptor->fd);
 }
 
+void descriptor_delay(struct descriptor* descriptor, gdouble delay) {
+  if (descriptor == NULL) {
+    WARN("Attempting to delay nonexistent descriptor.");
+    return;
+  }
+
+  if (descriptor->state != DESCRIPTOR_STATE_OPEN
+      && descriptor->state != DESCRIPTOR_STATE_DELAYING) return;
+
+  if (delay < 0) {
+    WARN("Attempting to delay descriptor by negative amount.");
+    return;
+  }
+  if (descriptor->state == DESCRIPTOR_STATE_OPEN) {
+    gettimeofday(&descriptor->delay_end, NULL);
+    descriptor->state = DESCRIPTOR_STATE_DELAYING;
+  }
+  timeval_add_delay(&descriptor->delay_end, delay);
+}
+
 void descriptor_drain(struct descriptor* descriptor) {
   descriptor->state = DESCRIPTOR_STATE_DRAINING;
+}
+
+gboolean descriptor_is_active(struct descriptor* descriptor, lua_State* lua) {
+  if (descriptor == NULL || lua == NULL) return FALSE;
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
+  lua_State* thread = lua_tothread(lua, -1);
+  gboolean rv = lua == thread;
+  lua_pop(lua, 1);
+  return rv;
 }
 
 void descriptor_will_echo(struct descriptor* descriptor, gboolean will) {

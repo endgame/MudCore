@@ -8,50 +8,50 @@
 PLAYERS = {}
 
 -- Remove leading/trailing whitespace.
-function string.trim(s)
-   return (s:gsub('^%s*(.-)%s*$', '%1'))
+function string:trim()
+   return (self:gsub('^%s*(.-)%s*$', '%1'))
 end
 
 -- Read in a loop until a valid name has been read.
-function mud.descriptor.read_name(desc)
-   local name = mud.descriptor.read():trim():lower()
+function mud.descriptor:read_name()
+   local name = self:read():trim():lower()
    if name:match '^%l+$' then
       if PLAYERS[name] then
-         desc:send 'That name is already taken. Choose another.\r\n'
-         return mud.descriptor.read_name(desc)
+         self:send 'That name is already taken. Choose another.\r\n'
+         return self:read_name()
       else
          return name
       end
    else
-      desc:send 'Invalid name. Choose another.\r\n'
-      return mud.descriptor.read_name(desc)
+      self:send 'Invalid name. Choose another.\r\n'
+      return self:read_name()
    end
 end
 
-function mud.descriptor.on_close(desc)
-   if desc.name then
-      PLAYERS[desc.name] = nil
+function mud.descriptor:on_close()
+   if self.name then
+      PLAYERS[self.name] = nil
    end
 end
 
 -- The chat mainloop.
-function chat(desc)
-   desc.prompt = 'chat> '
+function mud.descriptor:chat()
+   self.prompt = 'chat> '
    while true do
-      local line = mud.descriptor.read()
-      local message = '<' .. desc.name .. '> ' .. line .. '\r\n'
+      local line = self:read()
+      local message = '<' .. self.name .. '> ' .. line .. '\r\n'
       for _, d in pairs(PLAYERS) do
-         if d ~= desc then
+         if d ~= self then
             d:send(message)
          end
       end
    end
 end
 
-function mud.descriptor.on_open(desc)
-   desc.prompt = '> '
-   desc:send 'By what name do you wish to be known?\r\n'
-   desc.name = mud.descriptor.read_name(desc)
-   PLAYERS[desc.name] = desc
-   chat(desc)
+function mud.descriptor:on_open()
+   self.prompt = '> '
+   self:send 'By what name do you wish to be known?\r\n'
+   self.name = self:read_name()
+   PLAYERS[self.name] = self
+   self:chat()
 end

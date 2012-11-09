@@ -29,6 +29,7 @@
 
 #include <glib.h>
 #include <libtelnet.h>
+#include <lua.h>
 #include <sys/time.h>
 #include <zmq.h>
 
@@ -100,6 +101,9 @@ enum descriptor_state {
  ** A newline needs to be sent before fresh output if a complete
  ** command wasn't entered.
  ** @end deftypeivar
+ ** @deftypeivar {struct descriptor} gboolean self_delayed
+ ** If this descriptor is delaying, was its delay initiated by its own thread?
+ ** @end deftypeivar
  ** @deftypeivar {struct descriptor} {struct timeval} delay_end
  ** If non-zero, the thread will not be awoken until after this time.
  ** @end deftypeivar
@@ -126,6 +130,7 @@ struct descriptor {
   gboolean skip_until_newline;
   gboolean needs_prompt;
   gboolean needs_newline;
+  gboolean self_delayed;
   struct timeval delay_end;
   struct buffer* line_buffer;
   struct buffer* output_buffer;
@@ -236,6 +241,19 @@ void descriptor_append(struct descriptor* descriptor, const gchar* msg);
 void descriptor_close(struct descriptor* descriptor);
 
 /**
+ ** @deftypefun void descriptor_delay       @
+ **   (struct descriptor* @var{descriptor}, @
+ **    gdouble            @var{delay})
+ ** Put @var{descriptor} into the delaying state, if possible: It will
+ ** send output, but input will not be processed until at least
+ ** @var{delay} seconds have passed. @var{delay} must be
+ ** positive. Draining and closed descriptors cannot be delayed and
+ ** multiple delays are cumulative.
+ ** @end deftypefun
+ **/
+void descriptor_delay(struct descriptor* descriptor, gdouble delay);
+
+/**
  ** @deftypefun void descriptor_drain @
  **   (struct descriptor* @var{descriptor})
  ** Put @var{descriptor} into the draining state: it will send output,
@@ -244,6 +262,16 @@ void descriptor_close(struct descriptor* descriptor);
  ** @end deftypefun
  **/
 void descriptor_drain(struct descriptor* descriptor);
+
+/**
+ ** @deftypefun gboolean descriptor_is_active @
+ **   (struct descriptor* @var{descriptor},   @
+ **    lua_State*         @var{lua})
+ ** Return @code{TRUE} if and only if @var{lua} is the lua state that
+ ** correspond's to @var{descriptor}'s thread.
+ ** @end deftypefun
+ **/
+gboolean descriptor_is_active(struct descriptor* descriptor, lua_State* lua);
 
 /**
  ** @deftypefun void descriptor_will_echo   @

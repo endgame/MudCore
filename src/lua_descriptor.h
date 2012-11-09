@@ -47,6 +47,15 @@ void lua_descriptor_init(lua_State* lua);
 void lua_descriptor_start(struct descriptor* descriptor);
 
 /**
+ ** @deftypefun void lua_descriptor_resume  @
+ **   (struct descriptor* @var{descriptor}, @
+ **    gint               @var{nargs})
+ ** Resume the descriptor's thread, with nargs on the lua_State's stack.
+ ** @end deftypefun
+ **/
+void lua_descriptor_resume(struct descriptor* descriptor, gint nargs);
+
+/**
  ** @deftypefun void lua_descriptor_command  @
  **   (struct descriptor* @var{descriptor},  @
  **    const gchar*       @var{command})
@@ -56,14 +65,5 @@ void lua_descriptor_start(struct descriptor* descriptor);
  **/
 void lua_descriptor_command(struct descriptor* descriptor,
                             const gchar* command);
-
-/**
- ** @deftypefun void lua_descriptor_continue @
- **   (struct descriptor* @var{descriptor})
- ** Resume a descriptor's thread with nothing yielded (i.e., from a
- ** delay).
- ** @end deftypefun
- **/
-void lua_descriptor_continue(struct descriptor* descriptor);
 
 #endif

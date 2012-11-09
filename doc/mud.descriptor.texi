@@ -4,33 +4,68 @@
 The @code{mud.descriptor} table holds the primitives for socket
 operations. Each client gets its own lua thread, and can block until
 input is available. Descriptors are exposed as a Lua userdatum with type
-@code{mudcore.descriptor}.
+@code{mudcore.descriptor}. Method calls on a descriptor are looked up in
+the @code{mud.descriptor} table, so you can define additional methods
+there. Unless noted otherwise, methods can be called upon descriptors in
+other threads.
 
 Descriptors can store additional fields beyond those listed here, as
 each descriptor contains its own private table. Access these fields as
 if the descriptor was a regular table.
 
-@defun mud.descriptor.on_close (@var{descriptor})
+@defmethod mudcore.descriptor close ()
+Put a descriptor into the @emph{draining} state; no new input can be
+received and the descriptor will close after all pending output has been
+sent. If the descriptor being closed belongs to the current thread, that
+thread will continue to execute until explicitly stopped (by reaching
+the end of @code{mud.descriptor.on_open()}, raising an uncaught error or
+yielding). To stop the current thread, close its descriptor and then
+call @code{coroutine.yield()}.
+@end defmethod
+
+@defmethod mudcore.descriptor delay (@var{delay})
+Pause the descriptor until @var{delay} seconds have passed. You'll
+rarely want to use this function, since it looks like lag on the client
+end.
+@end defmethod
+
+@defmethod mudcore.descriptor extra_data ()
+Get the descriptor's extra_data table directly. Unless you're passing
+the table to @code{pairs()} or @code{ipairs()}, you can just use table
+syntax on the descriptor object itself.
+@end defmethod
+
+@defmethod mudcore.descriptor is_active ()
+Return @code{true} if and only if the descriptor corresponds to the
+currently executing thread.
+@end defmethod
+
+@defmethod mudcore.descriptor on_close ()
 This callback, if defined, is called when a descriptor closes. The
-descriptor won't be suitable for writing at this point, but it's a
-good place to remove references to @var{descriptor} from your data
-structures.
-@end defun
+descriptor won't be suitable for writing at this point, but it's a good
+place to remove references to it from your data structures.
+@end defmethod
 
-@defun mud.descriptor.on_open (@var{descriptor})
-Your code needs to define this function. It is the entry point for new
+@defmethod mudcore.descriptor on_open ()
+@strong{Your code needs to define this.} It is the entry point for new
 threads. If you don't, clients will be dropped.
-@end defun
+@end defmethod
 
-@defun mud.descriptor.delay (@var{delay})
-Pause this thread until @var{delay} seconds have passed. You'll rarely
-want to use this function, since it looks like lag on the client end.
-@end defun
-
-@defun mud.descriptor.read ()
+@defmethod mudcore.descriptor read ()
 Pause this thread until the next input line is available. The thread
-will be reactivated once the new line arrives.
-@end defun
+will be reactivated once the new line arrives. It is an error to call
+this on descriptors belonging to other threads.
+@end defmethod
+
+@defmethod mudcore.descriptor send (@var{str})
+Send @var{str} to the descriptor.
+@end defmethod
+
+@defmethod mudcore.descriptor will_echo (@var{will})
+Manipulate the telnet ECHO option. Turning the option on means that the
+server is responsible for echoing input. Turning it on but echoing
+nothing is common when accepting password input.
+@end defmethod
 
 @defivar mudcore.descriptor prompt
 Each descriptor has an independent callback for sending a prompt. This
@@ -53,35 +88,3 @@ These fields will be overwritten by the server every time it receives a
 new NAWS message. If the client disables NAWS, they will be set back to
 @code{nil}.
 @end defivar
-
-@defmethod mudcore.descriptor close ()
-Put a descriptor into the @emph{draining} state; no new input can be
-received and the descriptor will close after all pending output has been
-sent. If the descriptor being closed belongs to the current thread, that
-thread will continue to execute until explicitly stopped (by reaching
-the end of @code{mud.descriptor.on_open()}, raising an uncaught error or
-yielding). To stop the current thread, close its descriptor and then
-call @code{mud.descriptor.delay()}, @code{mud.descriptor.read()} or
-@code{coroutine.yield()}.
-@end defmethod
-
-@defmethod mudcore.descriptor extra_data ()
-Get the descriptor's extra_data table directly. Unless you're passing
-the table to @code{pairs()} or @code{ipairs()}, you can just use table
-syntax on the descriptor object itself.
-@end defmethod
-
-@defmethod mudcore.descriptor is_active ()
-Return @code{true} if and only if the descriptor corresponds to the
-currently executing thread. Return @code{false} in all other cases.
-@end defmethod
-
-@defmethod mudcore.descriptor send (@var{str})
-Send @var{str} to the descriptor.
-@end defmethod
-
-@defmethod mudcore.descriptor will_echo (@var{will})
-Manipulate the telnet ECHO option. Turning the option on means that the
-server is responsible for echoing input. Turning it on but echoing
-nothing is common when accepting password input.
-@end defmethod

@@ -1,5 +1,5 @@
 /* MudCore - a simple, lua-scripted MUD server
- * Copyright (C) 2011  Jack Kelly <jack@jackkelly.name>
+ * Copyright (C) 2013  Jack Kelly <jack@jackkelly.name>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
  **    gint     @var{argc},        @
  **    gchar*   @var{argv}[])
  ** Construct a @code{lua_State*} (that is accessible using
- ** @code{lua_api_get()} that:
+ ** @code{lua_api_get()}) that:
  ** @itemize
  ** @item Uses GLib for memory management.
  ** @item Has the Lua standard library opened.

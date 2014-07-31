@@ -63,7 +63,7 @@ void lua_api_init(gpointer zmq_context, gint argc, gchar* argv[]) {
     { "shutdown", lua_shutdown },
     { NULL      , NULL         }
   };
-  luaL_register(lua, NULL, funcs);
+  luaL_setfuncs(lua, funcs, 0);
   lua_setglobal(lua, "mud");
   lua_args_init(lua, argc, argv);
   lua_descriptor_init(lua);

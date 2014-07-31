@@ -105,7 +105,7 @@ void lua_timer_init(lua_State* lua) {
     { "new", lua_timer_new },
     { NULL , NULL          }
   };
-  luaL_register(lua, NULL, timer_funcs);
+  luaL_setfuncs(lua, timer_funcs, 0);
   lua_setfield(lua, -2, "timer");
   lua_pop(lua, 1);
 
@@ -116,7 +116,7 @@ void lua_timer_init(lua_State* lua) {
     { NULL       , NULL                }
   };
   lua_newtable(lua);
-  luaL_register(lua, NULL, timer_methods);
+  luaL_setfuncs(lua, timer_methods, 0);
   lua_setfield(lua, -2, "__index");
   lua_pop(lua, 1);
 }

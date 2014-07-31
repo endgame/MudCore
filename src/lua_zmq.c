@@ -348,7 +348,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { "version", lua_zmq_version },
     { NULL     , NULL            }
   };
-  luaL_register(lua, NULL, zmq_funcs);
+  luaL_setfuncs(lua, zmq_funcs, 0);
 
   /* Socket types. */
   DECLARE_CONST(REQ);
@@ -411,7 +411,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { NULL     , NULL            }
   };
   lua_newtable(lua);
-  luaL_register(lua, NULL, zmq_methods);
+  luaL_setfuncs(lua, zmq_methods, 0);
   lua_setfield(lua, -2, "__index");
   lua_pop(lua, 1);
 }

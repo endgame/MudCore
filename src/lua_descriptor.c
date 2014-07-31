@@ -163,7 +163,7 @@ void lua_descriptor_init(lua_State* lua) {
     { "will_echo" , lua_descriptor_will_echo  },
     { NULL        , NULL                      }
   };
-  luaL_register(lua, NULL, descriptor_methods);
+  luaL_setfuncs(lua, descriptor_methods, 0);
   lua_setfield(lua, -2, "descriptor");
   lua_pop(lua, 1);
 }
@@ -177,7 +177,7 @@ void lua_descriptor_resume(struct descriptor* descriptor, gint nargs) {
     ERROR("Descriptor has lost its thread!");
     descriptor_close(descriptor);
   } else {
-    switch (lua_resume(thread, nargs)) {
+    switch (lua_resume(thread, NULL, nargs)) {
     case 0: /* Terminated. */
       descriptor_drain(descriptor);
       return;

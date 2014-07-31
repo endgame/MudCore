@@ -108,7 +108,7 @@ void lua_log_init(lua_State* lua) {
     { "fatal", lua_log_fatal },
     { NULL   , NULL          }
   };
-  luaL_register(lua, NULL, log_funcs);
+  luaL_setfuncs(lua, log_funcs, 0);
 
   /* Build the log metatable. */
   lua_newtable(lua);
@@ -118,7 +118,7 @@ void lua_log_init(lua_State* lua) {
     { "__newindex", lua_log_newindex },
     { NULL        , NULL             }
   };
-  luaL_register(lua, NULL, log_meta_funcs);
+  luaL_setfuncs(lua, log_meta_funcs, 0);
   lua_setmetatable(lua, -2);
   lua_setfield(lua, -2, "log");
   lua_pop(lua, 1);

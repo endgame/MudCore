@@ -1,10 +1,10 @@
 \input texinfo @c -*- texinfo -*-
+@include version.texi
+
 @c %**start of header
 @setfilename mudcore.info
 @settitle MudCore Reference Manual, Version @value{VERSION}
 @c %**end of header
-
-@include version.texi
 
 @dircategory Network Applications
 @direntry

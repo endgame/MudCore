@@ -1,4 +1,3 @@
-- Port to latest Lua version
 - Port to latest ZMQ version
 - Add webhook to generate pdf manual
-- Add switch to log via syslog
+- Add switch to log via syslog?

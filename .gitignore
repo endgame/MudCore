@@ -30,6 +30,7 @@ doc/mudcore.vr
 doc/mudcore.vrs
 doc/stamp-vti
 doc/version.texi
+log/
 m4/*.m4
 mudcore
 stamp-h1

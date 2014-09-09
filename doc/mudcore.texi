@@ -76,6 +76,7 @@ Running @code{mudcore} starts the mud. Log files are written to
 and @code{./boot.lua} is run. Control is then handed to the main loop.
 
 The following options modify the behaviour of the server:
+
 @table @samp
 @item -(no-)file-logging
 (Dis)able logging to files.
@@ -89,11 +90,6 @@ Set the port for the mud's main socket.
 @item -pulse-length=LENGTH
 Override the MUD's default pulse length (100 milliseconds). This value
 is given in microseconds.
-
-@item -zmq-io-threads=INT
-Override the number of I/O threads used by ZeroMQ. You may want to
-increase this from its default of 1 if you're using a lot of ZeroMQ
-sockets, or set it to 0 if you aren't using ZeroMQ at all.
 @end table
 
 All command-line arguments are available to Lua code. @xref{mud.args}.

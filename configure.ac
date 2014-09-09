@@ -28,6 +28,10 @@ PKG_CHECK_MODULES([ZeroMQ], [libzmq >= 2.1])
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+AC_CHECK_DECL([zmq_curve_keypair],
+  [AC_DEFINE([HAVE_ZMQ_CURVE_KEYPAIR],
+    [1], [Define if zmq_curve_keypair is provided by your zmq.h.])],,
+  [[#include <zmq.h>]])
 
 AC_CONFIG_FILES([Makefile doc/Makefile src/Makefile])
 AC_OUTPUT

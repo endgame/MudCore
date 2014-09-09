@@ -30,12 +30,10 @@
 
 #define DEFAULT_PORT "5000"
 #define DEFAULT_PULSE_LENGTH 100000 /* in microseconds */
-#define DEFAULT_ZMQ_IO_THREADS 1
 
 static gboolean file_logging = TRUE;
 static gchar* port = NULL;
 static gint pulse_length = DEFAULT_PULSE_LENGTH;
-static gint zmq_io_threads = DEFAULT_ZMQ_IO_THREADS;
 
 static void options_on_flag(const gchar* flagname,
                             gboolean value,
@@ -55,9 +53,6 @@ static void options_on_flag(const gchar* flagname,
          "  -pulse-length=LENGTH      "
          " length of each pulse in usec"
          " [" G_STRINGIFY(DEFAULT_PULSE_LENGTH) "]\n"
-         "  -zmq-io-threads=INT       "
-         " number of I/O threads used by ZeroMQ"
-         " [" G_STRINGIFY(DEFAULT_ZMQ_IO_THREADS) "]\n"
          "\n"
          "Lua code may use other flags not documented here.");
     exit(EXIT_SUCCESS);
@@ -89,13 +84,6 @@ static void options_on_option(const gchar* name,
       fprintf(stderr, "Invalid number for -pulse-length: %s\n", value);
       exit(EXIT_FAILURE);
     }
-  } else if (strcmp(name, "zmq-io-threads") == 0) {
-    errno = 0;
-    zmq_io_threads = strtol(value, NULL, 10);
-    if (errno != 0 || zmq_io_threads < 0) {
-      fprintf(stderr, "Invalid number for -zmq-io-threads: %s\n", value);
-      exit(EXIT_FAILURE);
-    }
   }
 }
 
@@ -123,8 +111,4 @@ gchar* options_port(void) {
 
 gint options_pulse_length(void) {
   return pulse_length;
-}
-
-gint options_zmq_io_threads(void) {
-  return zmq_io_threads;
 }

@@ -8,15 +8,15 @@ the outside world by way of ZeroMQ sockets.
 Build dependencies:
 -------------------
 - GLib (debian: libglib2.0-dev)
-- libtelnet (build source from https://github.com/elanthis/libtelnet)
+- libtelnet (debian: libtelnet-dev)
 - lua 5.2 (debian: liblua5.2-dev)
 - pkg-config (debian: pkg-config)
-- ZeroMQ >= 2.1 (debian: libzmq-dev)
+- ZeroMQ >= 4.0.4 (debian: libzmq3-dev)
 
 Additional dependencies to build documentation:
 -----------------------------------------------
-- texinfo (debian: apt-get install texinfo)
-- texlive (pdf/ps/dvi only, debian: apt-get install texlive)
+- texinfo
+- texlive (pdf/ps/dvi only)
 
 If you want documentation in a form that's not .info, try running
 `make pdf' or `make html'. Similarly, `make install-pdf' or `make
@@ -24,8 +24,8 @@ install-html' will do what you expect.
 
 Additional dependencies to build from git:
 ------------------------------------------
-- autoconf (debian: apt-get install autoconf)
-- automake (debian: apt-get install automake)
+- autoconf
+- automake
 
 Building from source is the usual `./configure && make && make
 install' dance, but you'll need to run `autoreconf -i' first if you're

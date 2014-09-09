@@ -28,6 +28,7 @@
 #include "lua_api.h"
 
 #define SOCKET_TYPE "mudcore.zmq_socket"
+#define Z85_KEY_LENGTH 41 /* +1 for '\0' */
 #define ZMQ_IDENTITY_MAXLEN 255
 
 struct watcher {
@@ -113,49 +114,96 @@ static gint lua_zmq_connect(lua_State* lua) {
   return 0;
 }
 
+static gint lua_zmq_curve_keypair(lua_State* lua) {
+#ifdef HAVE_ZMQ_CURVE_KEYPAIR
+  gchar public_key[Z85_KEY_LENGTH];
+  gchar secret_key[Z85_KEY_LENGTH];
+
+  if (zmq_curve_keypair(public_key, secret_key) == -1) {
+    return lua_zmq_error(lua, "zmq_curve_keypair");
+  }
+
+  lua_pushstring(lua, public_key);
+  lua_pushstring(lua, secret_key);
+  return 2;
+#else
+  return luaL_error(lua, "zmq_curve_keypair() not available.");
+#endif
+}
+
 static gint lua_zmq_getopt(lua_State* lua) {
+  gint opt = luaL_checkint(lua, 1);
+  lua_pushinteger(lua, zmq_ctx_get(context, opt));
+  return 1;
+}
+
+static gint lua_zmq_getsockopt(lua_State* lua) {
   gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint option = luaL_checkint(lua, 2);
   union {
     gchar s[ZMQ_IDENTITY_MAXLEN];
     gint i;
-    gint32 i32;
     gint64 i64;
     guint64 u64;
   } buf;
   gsize buf_size = sizeof(buf);
+
+  if (option == ZMQ_CURVE_PUBLICKEY
+      || option == ZMQ_CURVE_SECRETKEY
+      || option == ZMQ_CURVE_SERVERKEY) {
+    buf_size = Z85_KEY_LENGTH;
+  }
+
   if (zmq_getsockopt(socket, option, &buf, &buf_size) == -1) {
     return lua_zmq_error(lua, "zmq_getsockopt");
   }
 
   switch (option) {
+  case ZMQ_CURVE_SERVER:
+  case ZMQ_IMMEDIATE:
+  case ZMQ_IPV6:
+  case ZMQ_PLAIN_SERVER:
+  case ZMQ_RCVMORE:
+    lua_pushboolean(lua, buf.i);
+    return 1;
   case ZMQ_BACKLOG:
+  case ZMQ_EVENTS:
   case ZMQ_FD:
   case ZMQ_LINGER:
+  case ZMQ_MECHANISM:
+  case ZMQ_MULTICAST_HOPS:
+  case ZMQ_RATE:
+  case ZMQ_RCVBUF:
+  case ZMQ_RCVHWM:
+  case ZMQ_RCVTIMEO:
   case ZMQ_RECONNECT_IVL:
   case ZMQ_RECONNECT_IVL_MAX:
+  case ZMQ_RECOVERY_IVL:
+  case ZMQ_SNDBUF:
+  case ZMQ_SNDHWM:
+  case ZMQ_SNDTIMEO:
+  case ZMQ_TCP_KEEPALIVE:
+  case ZMQ_TCP_KEEPALIVE_CNT:
+  case ZMQ_TCP_KEEPALIVE_IDLE:
+  case ZMQ_TCP_KEEPALIVE_INTVL:
   case ZMQ_TYPE:
     lua_pushinteger(lua, buf.i);
     return 1;
-  case ZMQ_MCAST_LOOP:
-  case ZMQ_RATE:
-  case ZMQ_RECOVERY_IVL:
-  case ZMQ_RECOVERY_IVL_MSEC:
-  case ZMQ_RCVMORE:
-  case ZMQ_SWAP:
+  case ZMQ_MAXMSGSIZE:
     lua_pushinteger(lua, buf.i64);
     return 1;
   case ZMQ_AFFINITY:
-  case ZMQ_HWM:
-  case ZMQ_RCVBUF:
-  case ZMQ_SNDBUF:
     lua_pushinteger(lua, buf.u64);
     return 1;
+  case ZMQ_CURVE_PUBLICKEY:
+  case ZMQ_CURVE_SECRETKEY:
+  case ZMQ_CURVE_SERVERKEY:
   case ZMQ_IDENTITY:
+  case ZMQ_LAST_ENDPOINT:
+  case ZMQ_PLAIN_PASSWORD:
+  case ZMQ_PLAIN_USERNAME:
+  case ZMQ_ZAP_DOMAIN:
     lua_pushlstring(lua, buf.s, buf_size);
-    return 1;
-  case ZMQ_EVENTS:
-    lua_pushinteger(lua, buf.i32);
     return 1;
   }
   return 0;
@@ -166,7 +214,7 @@ static gint lua_zmq_recv(lua_State* lua) {
   gint flags = luaL_optint(lua, 2, 0);
   zmq_msg_t msg;
   zmq_msg_init(&msg);
-  if (zmq_recv(socket, &msg, flags) == -1) {
+  if (zmq_msg_recv(&msg, socket, flags) == -1) {
     zmq_msg_close(&msg);
     return lua_zmq_error(lua, "zmq_recv");
   }
@@ -186,14 +234,23 @@ static gint lua_zmq_send(lua_State* lua) {
                     len,
                     zmq_g_free,
                     NULL);
-  if (zmq_send(socket, &msg, flags) == -1) {
+  if (zmq_msg_send(&msg, socket, flags) == -1) {
     zmq_msg_close(&msg);
-    return lua_zmq_error(lua, "zmq_send");
+    return lua_zmq_error(lua, "zmq_msg_send");
   }
   return 0;
 }
 
 static gint lua_zmq_setopt(lua_State* lua) {
+  gint option = luaL_checkint(lua, 1);
+  gint value = luaL_checkint(lua, 2);
+  if (zmq_ctx_set(context, option, value) == -1) {
+    return lua_zmq_error(lua, "zmq_ctx_set");
+  }
+  return 0;
+}
+
+static gint lua_zmq_setsockopt(lua_State* lua) {
   gpointer socket = *(gpointer*)luaL_checkudata(lua, 1, SOCKET_TYPE);
   gint option = luaL_checkint(lua, 2);
   union {
@@ -201,45 +258,78 @@ static gint lua_zmq_setopt(lua_State* lua) {
     gint64 i64;
     guint64 u64;
   } optval;
+  gboolean set_str = FALSE;
   const gchar* str = NULL;
   gsize optsize;
   switch (option) {
   case ZMQ_AFFINITY:
-  case ZMQ_HWM:
-  case ZMQ_RCVBUF:
-  case ZMQ_SNDBUF:
     optval.u64 = luaL_checkint(lua, 3);
     optsize = sizeof(optval.u64);
     break;
-  case ZMQ_MCAST_LOOP:
-  case ZMQ_RATE:
-  case ZMQ_RECOVERY_IVL:
-  case ZMQ_RECOVERY_IVL_MSEC:
-  case ZMQ_SWAP:
+  case ZMQ_MAXMSGSIZE:
     optval.i64 = luaL_checkint(lua, 3);
     optsize = sizeof(optval.i64);
     break;
   case ZMQ_BACKLOG:
   case ZMQ_LINGER:
+  case ZMQ_MULTICAST_HOPS:
+  case ZMQ_RATE:
+  case ZMQ_RCVBUF:
+  case ZMQ_RCVHWM:
+  case ZMQ_RCVTIMEO:
   case ZMQ_RECONNECT_IVL:
   case ZMQ_RECONNECT_IVL_MAX:
+  case ZMQ_RECOVERY_IVL:
+  case ZMQ_SNDBUF:
+  case ZMQ_SNDHWM:
+  case ZMQ_SNDTIMEO:
+  case ZMQ_TCP_KEEPALIVE:
+  case ZMQ_TCP_KEEPALIVE_CNT:
+  case ZMQ_TCP_KEEPALIVE_IDLE:
+  case ZMQ_TCP_KEEPALIVE_INTVL:
     optval.i = luaL_checkint(lua, 3);
     optsize = sizeof(optval.i);
     break;
+  case ZMQ_CONFLATE:
+  case ZMQ_CURVE_SERVER:
+  case ZMQ_IMMEDIATE:
+  case ZMQ_IPV6:
+  case ZMQ_PLAIN_SERVER:
+  case ZMQ_PROBE_ROUTER:
+  case ZMQ_REQ_CORRELATE:
+  case ZMQ_REQ_RELAXED:
+  case ZMQ_ROUTER_MANDATORY:
+  case ZMQ_XPUB_VERBOSE:
+    optval.i = lua_toboolean(lua, 3);
+    optsize = sizeof(optval.i);
+    break;
+  case ZMQ_TCP_ACCEPT_FILTER:
+    if (lua_isnil(lua, 3)) {
+      set_str = TRUE;
+      break;
+    }
+    /* Fall through. */
+  case ZMQ_CURVE_PUBLICKEY:
+  case ZMQ_CURVE_SECRETKEY:
+  case ZMQ_CURVE_SERVERKEY:
   case ZMQ_IDENTITY:
+  case ZMQ_PLAIN_PASSWORD:
+  case ZMQ_PLAIN_USERNAME:
   case ZMQ_SUBSCRIBE:
   case ZMQ_UNSUBSCRIBE:
+  case ZMQ_ZAP_DOMAIN:
     str = luaL_checklstring(lua, 3, &optsize);
+    set_str = TRUE;
     break;
   default:
     return lua_zmq_error(lua, "Unknown (or unimplemented) option.");
   }
 
   gint rc;
-  if (str == NULL) {
-    rc = zmq_setsockopt(socket, option, &optval, optsize);
-  } else {
+  if (set_str) {
     rc = zmq_setsockopt(socket, option, str, optsize);
+  } else {
+    rc = zmq_setsockopt(socket, option, &optval, optsize);
   }
 
   if (rc == -1) {
@@ -273,6 +363,48 @@ static gint lua_zmq_version(lua_State* lua) {
   lua_rawseti(lua, -2, 2);
   lua_pushinteger(lua, patch);
   lua_rawseti(lua, -2, 3);
+  return 1;
+}
+
+static gint lua_zmq_z85_decode(lua_State *lua) {
+  const gchar* str = luaL_checkstring(lua, 1);
+  gint len = luaL_len(lua, 1);
+  if (len % 5 != 0) {
+    return luaL_error(lua, "z85_decode: String length not divisible by 5.");
+  }
+
+  gint buflen = len * 4 / 5;
+  guint8* buf = g_new(guint8, buflen);
+  /* zmq_z85_decode should take a const char* but doesn't */
+  guint8* rv = zmq_z85_decode(buf, (gchar*)str);
+
+  if (rv == NULL) {
+    lua_pushnil(lua);
+  } else {
+    lua_pushlstring(lua, (gchar*)buf, buflen);
+  }
+
+  g_free(buf);
+  return 1;
+}
+
+static gint lua_zmq_z85_encode(lua_State *lua) {
+  const gchar* str = luaL_checkstring(lua, 1);
+  gint len = luaL_len(lua, 1);
+  if (len % 4 != 0) {
+    return luaL_error(lua, "z85_encode: Stirng length not divisible by 4.");
+  }
+
+  gint buflen = len * 5 / 4 + 1;
+  gchar* buf = g_new(gchar, buflen);
+  gchar* rv = zmq_z85_encode(buf, (guint8*)str, len);
+  if (rv == NULL) {
+    lua_pushnil(lua);
+  } else {
+    lua_pushlstring(lua, buf, buflen - 1); /* Don't copy terminator */
+  }
+
+  g_free(buf);
   return 1;
 }
 
@@ -344,11 +476,21 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   /* Put functions in the zmq table. */
   lua_newtable(lua);
   static const luaL_Reg zmq_funcs[] = {
-    { "socket" , lua_zmq_socket  },
-    { "version", lua_zmq_version },
-    { NULL     , NULL            }
+    { "curve_keypair", lua_zmq_curve_keypair },
+    { "getopt"       , lua_zmq_getopt        },
+    { "setopt"       , lua_zmq_setopt        },
+    { "socket"       , lua_zmq_socket        },
+    { "version"      , lua_zmq_version       },
+    { "z85_decode"   , lua_zmq_z85_decode    },
+    { "z85_encode"   , lua_zmq_z85_encode    },
+    { NULL           , NULL                  }
   };
   luaL_setfuncs(lua, zmq_funcs, 0);
+
+  /* Context Options */
+  DECLARE_CONST(IO_THREADS);
+  DECLARE_CONST(MAX_SOCKETS);
+  DECLARE_CONST(IPV6);
 
   /* Socket types. */
   DECLARE_CONST(REQ);
@@ -357,6 +499,8 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   DECLARE_CONST(ROUTER);
   DECLARE_CONST(PUB);
   DECLARE_CONST(SUB);
+  DECLARE_CONST(XPUB);
+  DECLARE_CONST(XSUB);
   DECLARE_CONST(PUSH);
   DECLARE_CONST(PULL);
   DECLARE_CONST(PAIR);
@@ -364,31 +508,63 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   /* Gettable socket options. */
   DECLARE_CONST(EVENTS);
   DECLARE_CONST(FD);
+  DECLARE_CONST(LAST_ENDPOINT);
+  DECLARE_CONST(MECHANISM);
   DECLARE_CONST(RCVMORE);
   DECLARE_CONST(TYPE);
 
   /* Gettable/settable socket options. */
   DECLARE_CONST(AFFINITY);
   DECLARE_CONST(BACKLOG);
-  DECLARE_CONST(HWM);
+  DECLARE_CONST(CURVE_PUBLICKEY);
+  DECLARE_CONST(CURVE_SECRETKEY);
+  DECLARE_CONST(CURVE_SERVER);
+  DECLARE_CONST(CURVE_SERVERKEY);
   DECLARE_CONST(IDENTITY);
+  DECLARE_CONST(IMMEDIATE);
+  DECLARE_CONST(IPV6);
   DECLARE_CONST(LINGER);
-  DECLARE_CONST(MCAST_LOOP);
+  DECLARE_CONST(MAXMSGSIZE);
+  DECLARE_CONST(MULTICAST_HOPS);
+  DECLARE_CONST(PLAIN_PASSWORD);
+  DECLARE_CONST(PLAIN_SERVER);
+  DECLARE_CONST(PLAIN_USERNAME);
   DECLARE_CONST(RATE);
   DECLARE_CONST(RCVBUF);
+  DECLARE_CONST(RCVHWM);
+  DECLARE_CONST(RCVTIMEO);
   DECLARE_CONST(RECONNECT_IVL);
   DECLARE_CONST(RECONNECT_IVL_MAX);
   DECLARE_CONST(RECOVERY_IVL);
-  DECLARE_CONST(RECOVERY_IVL_MSEC);
   DECLARE_CONST(SNDBUF);
-  DECLARE_CONST(SWAP);
+  DECLARE_CONST(SNDHWM);
+  DECLARE_CONST(SNDTIMEO);
+  DECLARE_CONST(TCP_KEEPALIVE);
+  DECLARE_CONST(TCP_KEEPALIVE_CNT);
+  DECLARE_CONST(TCP_KEEPALIVE_IDLE);
+  DECLARE_CONST(TCP_KEEPALIVE_INTVL);
+  DECLARE_CONST(ZAP_DOMAIN);
 
   /* Settable socket options. */
+  DECLARE_CONST(CONFLATE);
+  DECLARE_CONST(PROBE_ROUTER);
+  DECLARE_CONST(REQ_CORRELATE);
+  DECLARE_CONST(REQ_RELAXED);
+  DECLARE_CONST(ROUTER_MANDATORY);
   DECLARE_CONST(SUBSCRIBE);
+  DECLARE_CONST(TCP_ACCEPT_FILTER);
   DECLARE_CONST(UNSUBSCRIBE);
+  DECLARE_CONST(XPUB_VERBOSE);
+
+  /* Flags for socket options. */
+  DECLARE_CONST(CURVE);
+  DECLARE_CONST(NULL);
+  DECLARE_CONST(PLAIN);
+  DECLARE_CONST(POLLIN);
+  DECLARE_CONST(POLLOUT);
 
   /* Send/receive flags. */
-  DECLARE_CONST(NOBLOCK);
+  DECLARE_CONST(DONTWAIT);
 
   /* Send-only flags. */
   DECLARE_CONST(SNDMORE);
@@ -399,16 +575,16 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   /* Set up the socket metatable. */
   luaL_newmetatable(lua, SOCKET_TYPE);
   static const luaL_Reg zmq_methods[] = {
-    { "__gc"   , lua_zmq_close   },
-    { "bind"   , lua_zmq_bind    },
-    { "close"  , lua_zmq_close   },
-    { "connect", lua_zmq_connect },
-    { "getopt" , lua_zmq_getopt  },
-    { "recv"   , lua_zmq_recv    },
-    { "send"   , lua_zmq_send    },
-    { "setopt" , lua_zmq_setopt  },
-    { "watch"  , lua_zmq_watch   },
-    { NULL     , NULL            }
+    { "__gc"   , lua_zmq_close      },
+    { "bind"   , lua_zmq_bind       },
+    { "close"  , lua_zmq_close      },
+    { "connect", lua_zmq_connect    },
+    { "getopt" , lua_zmq_getsockopt },
+    { "recv"   , lua_zmq_recv       },
+    { "send"   , lua_zmq_send       },
+    { "setopt" , lua_zmq_setsockopt },
+    { "watch"  , lua_zmq_watch      },
+    { NULL     , NULL               }
   };
   lua_newtable(lua);
   luaL_setfuncs(lua, zmq_methods, 0);

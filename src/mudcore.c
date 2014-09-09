@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
   signal(SIGPIPE, SIG_IGN);
 
   DEBUG("Creating ZeroMQ context.");
-  gpointer zmq_context = zmq_init(options_zmq_io_threads());
+  gpointer zmq_context = zmq_ctx_new();
   if (zmq_context == NULL) {
     PERROR("main(zmq_init)");
     error = 1;
@@ -76,15 +76,16 @@ int main(int argc, char* argv[]) {
   socket_close(socket);
  err1:
   DEBUG("Terminating ZeroMQ context.");
-  /* This is separate from lua_api_deinit() to prevent zmq_term() from
-     blocking forever. */
+  /* This is separate from lua_api_deinit() to prevent zmq_ctx_term()
+     from blocking forever. */
   lua_zmq_deinit();
-  zmq_term(zmq_context);
+  zmq_ctx_term(zmq_context);
  err0:
   DEBUG("Enabling SIGPIPE.");
   signal(SIGPIPE, SIG_DFL);
   options_deinit();
   descriptor_deinit();
+
   if (lua_api_get() != NULL) {
     DEBUG("Closing Lua state.");
     lua_api_deinit();

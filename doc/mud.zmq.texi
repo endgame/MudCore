@@ -13,7 +13,38 @@ server's pulse rate. This means that you may want to introduce a caching
 layer if response time is super-important.
 
 Constants defined in the ZeroMQ C API (@code{ZMQ_FOO}) are exposed as
-@code{mud.zmq.FOO}.
+@code{mud.zmq.FOO}. This includes option flags.
+
+A note on type conversion: socket options accept and return different
+types depending on the option specified:
+@itemize
+@item
+  All integers are converted to Lua integers, regardless of size.
+@item
+  Options that have a value of either 0 or 1 take and return Lua
+  booleans.
+@item
+  String options that are reset by passing @code{NULL} in C accept Lua's
+  @code{nil}.
+@item
+  CURVE keys are returned as Z85-encoded strings, but you can pass in
+  strings as either Z85-encoded strings or binary data (in a Lua
+  string).
+@end itemize
+
+@defun mud.zmq.getopt (@var{option})
+@defunx mud.zmq.setopt (@var{option}, @var{value})
+Alter options on the server's ZeroMQ context. Corresponds to
+@code{zmq_ctx_get()} and @code{zmq_ctx_set()}. @var{option} is one of
+the following constants:
+@itemize
+@item @code{mud.zmq.IO_THREADS}
+@item @code{mud.zmq.MAX_SOCKETS}
+@item @code{mud.zmq.IPV6}
+@end itemize
+
+@var{value} is an integer.
+@end defun
 
 @defun mud.zmq.socket (@var{type})
 Create and return a ZeroMQ socket. @var{type} is one of the following
@@ -25,6 +56,8 @@ constants:
 @item @code{mud.zmq.ROUTER}
 @item @code{mud.zmq.PUB}
 @item @code{mud.zmq.SUB}
+@item @code{mud.zmq.XPUB}
+@item @code{mud.zmq.XSUB}
 @item @code{mud.zmq.PUSH}
 @item @code{mud.zmq.PULL}
 @item @code{mud.zmq.PAIR}
@@ -37,6 +70,13 @@ The returned socket is a Lua userdatum with type
 @defun mud.zmq.version ()
 Return a table @code{@{MAJOR, MINOR, PATCHLEVEL@}} corresponding to the
 ZeroMQ version.
+@end defun
+
+@defun mud.zmq.z85_decode (@var{string})
+@defunx mud.zmq.z85_encode (@var{binary})
+Decode a Z85-encoded @var{string} into its binary representation, or
+encode @var{binary} data (also stored as a Lua string) into a
+Z85-encoded string.
 @end defun
 
 @defmethod mudcore.zmq_socket bind (@var{endpoint})
@@ -56,22 +96,40 @@ Look up a socket option. Valid options are:
 @itemize
 @item @code{mud.zmq.AFFINITY}
 @item @code{mud.zmq.BACKLOG}
+@item @code{mud.zmq.CURVE_PUBLICKEY}
+@item @code{mud.zmq.CURVE_SECRETKEY}
+@item @code{mud.zmq.CURVE_SERVERKEY}
+@item @code{mud.zmq.CURVE_SERVER}
 @item @code{mud.zmq.EVENTS}
 @item @code{mud.zmq.FD}
-@item @code{mud.zmq.HWM}
 @item @code{mud.zmq.IDENTITY}
+@item @code{mud.zmq.IMMEDIATE}
+@item @code{mud.zmq.IPV6}
+@item @code{mud.zmq.LAST_ENDPOINT}
 @item @code{mud.zmq.LINGER}
-@item @code{mud.zmq.MCAST_LOOP}
+@item @code{mud.zmq.MAXMSGSIZE}
+@item @code{mud.zmq.MECHANISM}
+@item @code{mud.zmq.MULTICAST_HOPS}
+@item @code{mud.zmq.PLAIN_PASSWORD}
+@item @code{mud.zmq.PLAIN_SERVER}
+@item @code{mud.zmq.PLAIN_USERNAME}
 @item @code{mud.zmq.RATE}
 @item @code{mud.zmq.RCVBUF}
+@item @code{mud.zmq.RCVHWM}
 @item @code{mud.zmq.RCVMORE}
+@item @code{mud.zmq.RCVTIMEO}
 @item @code{mud.zmq.RECONNECT_IVL_MAX}
 @item @code{mud.zmq.RECONNECT_IVL}
-@item @code{mud.zmq.RECOVERY_IVL_MSEC}
 @item @code{mud.zmq.RECOVERY_IVL}
 @item @code{mud.zmq.SNDBUF}
-@item @code{mud.zmq.SWAP}
+@item @code{mud.zmq.SNDHWM}
+@item @code{mud.zmq.SNDTIMEO}
+@item @code{mud.zmq.TCP_KEEPALIVE_CNT}
+@item @code{mud.zmq.TCP_KEEPALIVE_IDLE}
+@item @code{mud.zmq.TCP_KEEPALIVE_INTVL}
+@item @code{mud.zmq.TCP_KEEPALIVE}
 @item @code{mud.zmq.TYPE}
+@item @code{mud.zmq.ZAP_DOMAIN}
 @end itemize
 See the man page for @code{zmq_getsockopt} for a list of option
 descriptions and what is returned for each.
@@ -81,9 +139,9 @@ descriptions and what is returned for each.
 Receive a message on the socket and return it as a string. @var{flags}
 is a combination of zero or more of the following flags:
 @itemize
-@item @code{mud.zmq.NOBLOCK}
+@item @code{mud.zmq.DONTWAIT}
 @end itemize
-See the man page for @code{zmq_recv} for a description of each flag.
+See the man page for @code{zmq_msg_recv} for a description of each flag.
 @end defmethod
 
 @defmethod mudcore.zmq_socket setopt (@var{option}, @var{value})
@@ -91,20 +149,43 @@ Set a socket option. Valid options are:
 @itemize
 @item @code{mud.zmq.AFFINITY}
 @item @code{mud.zmq.BACKLOG}
-@item @code{mud.zmq.HWM}
+@item @code{mud.zmq.CONFLATE}
+@item @code{mud.zmq.CURVE_PUBLICKEY}
+@item @code{mud.zmq.CURVE_SECRETKEY}
+@item @code{mud.zmq.CURVE_SERVERKEY}
+@item @code{mud.zmq.CURVE_SERVER}
 @item @code{mud.zmq.IDENTITY}
+@item @code{mud.zmq.IMMEDIATE}
+@item @code{mud.zmq.IPV6}
 @item @code{mud.zmq.LINGER}
-@item @code{mud.zmq.MCAST_LOOP}
+@item @code{mud.zmq.MAXMSGSIZE}
+@item @code{mud.zmq.MULTICAST_HOPS}
+@item @code{mud.zmq.PLAIN_PASSWORD}
+@item @code{mud.zmq.PLAIN_SERVER}
+@item @code{mud.zmq.PLAIN_USERNAME}
+@item @code{mud.zmq.PROBE_ROUTER}
 @item @code{mud.zmq.RATE}
 @item @code{mud.zmq.RCVBUF}
-@item @code{mud.zmq.RECONNECT_IVL}
+@item @code{mud.zmq.RCVHWM}
+@item @code{mud.zmq.RCVTIMEO}
 @item @code{mud.zmq.RECONNECT_IVL_MAX}
+@item @code{mud.zmq.RECONNECT_IVL}
 @item @code{mud.zmq.RECOVERY_IVL}
-@item @code{mud.zmq.RECOVERY_IVL_MSEC}
+@item @code{mud.zmq.REQ_CORRELATE}
+@item @code{mud.zmq.REQ_RELAXED}
+@item @code{mud.zmq.ROUTER_MANDATORY}
 @item @code{mud.zmq.SNDBUF}
-@item @code{mud.zmq.SWAP}
+@item @code{mud.zmq.SNDHWM}
+@item @code{mud.zmq.SNDTIMEO}
 @item @code{mud.zmq.SUBSCRIBE}
+@item @code{mud.zmq.TCP_ACCEPT_FILTER}
+@item @code{mud.zmq.TCP_KEEPALIVE_CNT}
+@item @code{mud.zmq.TCP_KEEPALIVE_IDLE}
+@item @code{mud.zmq.TCP_KEEPALIVE_INTVL}
+@item @code{mud.zmq.TCP_KEEPALIVE}
 @item @code{mud.zmq.UNSUBSCRIBE}
+@item @code{mud.zmq.XPUB_VERBOSE}
+@item @code{mud.zmq.ZAP_DOMAIN}
 @end itemize
 See the man page for @code{zmq_setsockopt} for a list of option
 descriptions and what parameter is expected for the option's value.
@@ -115,10 +196,10 @@ Send @var{msg} (a string, or convertible to a string) on the
 socket. @var{flags} is a combination of zero or more of the following
 flags:
 @itemize
-@item @code{mud.zmq.NOBLOCK}
+@item @code{mud.zmq.DONTWAIT}
 @item @code{mud.zmq.SNDMORE}
 @end itemize
-See the man page for @code{zmq_send} for a description of each flag.
+See the man page for @code{zmq_msg_send} for a description of each flag.
 @end defmethod
 
 @defmethod mudcore.zmq_socket watch (@var{in_func} = @code{nil}, @

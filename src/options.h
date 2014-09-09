@@ -66,12 +66,4 @@ gchar* options_port(void);
  **/
 gint options_pulse_length(void);
 
-/**
- ** @deftypefun gint options_zmq_io_threads @
- **   (void)
- ** Get the value of the @code{-zmq-io-threads} option.
- ** @end deftypefun
- **/
-gint options_zmq_io_threads(void);
-
 #endif

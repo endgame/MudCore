@@ -222,10 +222,10 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
       lua_State* lua = lua_api_get();
       lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
       lua_pushliteral(lua, "width");
-      lua_pushinteger(lua, htons(*(guint16*)event->sub.buffer));
+      lua_pushinteger(lua, ntohs(*(guint16*)event->sub.buffer));
       lua_rawset(lua, -3);
       lua_pushliteral(lua, "height");
-      lua_pushinteger(lua, htons(*(guint16*)(event->sub.buffer + 2)));
+      lua_pushinteger(lua, ntohs(*(guint16*)(event->sub.buffer + 2)));
       lua_rawset(lua, -3);
       lua_pop(lua, 1);
     }

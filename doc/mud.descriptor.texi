@@ -9,10 +9,6 @@ the @code{mud.descriptor} table, so you can define additional methods
 there. Unless noted otherwise, methods can be called upon descriptors in
 other threads.
 
-Descriptors can store additional fields beyond those listed here, as
-each descriptor contains its own private table. Access these fields as
-if the descriptor was a regular table.
-
 @defmethod mudcore.descriptor close ()
 Put a descriptor into the @emph{draining} state; no new input can be
 received and the descriptor will close after all pending output has been
@@ -68,6 +64,11 @@ Manipulate the telnet ECHO option. Turning the option on means that the
 server is responsible for echoing input. Turning it on but echoing
 nothing is common when accepting password input.
 @end defmethod
+
+Descriptors also have several instance variables, described below. They
+can store additional fields beyond those listed here, as each descriptor
+contains its own private table. Access these fields as if the descriptor
+was a regular table.
 
 @defivar mudcore.descriptor prompt
 Each descriptor has an independent callback for sending a prompt. This

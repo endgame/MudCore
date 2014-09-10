@@ -36,10 +36,10 @@
 #define COMMAND_QUEUE_SIZE 10
 #define LINE_BUFFER_SIZE 512
 #define OUTPUT_BUFFER_SIZE 4096
-#define RECV_BUFFER_SIZE 512
+#define RECV_BUFFER_SIZE 1024
 
-/* Encapsulated table of all client descriptors. */
-static GHashTable* /* of int -> struct descriptor* */ descriptors;
+/* Table of all client descriptors. */
+static GHashTable* /* of int(fd) -> struct descriptor* */ descriptors;
 
 /* Iterate through the descriptor table. Iter names the iterator,
    Value the descriptor pointer. */
@@ -101,39 +101,45 @@ static void descriptor_do_send(struct descriptor* descriptor) {
   }
 }
 
-/* Read as much as possible from the socket, passing it to libtelnet. */
+/* Read from the socket, passing it to libtelnet. */
 static void descriptor_do_recv(struct descriptor* descriptor) {
   gchar buf[RECV_BUFFER_SIZE];
-  while (descriptor_should_recv(descriptor)) {
-    gssize count = recv(descriptor->fd, buf, sizeof(buf), 0);
-    if (count == 0) {
-      descriptor_close(descriptor);
-      return;
-    }
-
-    if (count == -1) {
-      if (errno == EAGAIN || errno == EWOULDBLOCK) return;
-      if (errno == EINTR) continue;
-      PERROR("descriptor_do_recv(recv)");
-      descriptor_close(descriptor);
-      return;
-    }
-
-    telnet_recv(descriptor->telnet, buf, count);
+  gssize count = recv(descriptor->fd, buf, sizeof(buf), 0);
+  if (count == 0) {
+    descriptor_close(descriptor);
+    return;
   }
+
+  if (count == -1) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) return;
+    PERROR("descriptor_do_recv(recv)");
+    descriptor_close(descriptor);
+    return;
+  }
+
+  telnet_recv(descriptor->telnet, buf, count);
 }
 
 /* Add data to the output buffer, flushing to the socket if necessary. */
 static void descriptor_buffer_output(struct descriptor* descriptor,
                                      const gchar* data,
                                      gsize len) {
+  if (descriptor->state == DESCRIPTOR_STATE_CLOSED) return;
   guint added = buffer_append(descriptor->output_buffer, data, len);
-  while (added < len) {
+
+  /* If we couldn't fit everything in the buffer, try flushing. */
+  if (added < len) {
     descriptor_do_send(descriptor);
-    if (!descriptor_should_send(descriptor)) break;
+
     added += buffer_append(descriptor->output_buffer,
                            data + added,
                            len - added);
+
+    /* If we're still full, the descriptor's flooded out. Kill it. */
+    if (added < len) {
+      WARN("FD %d flooded out!", descriptor->fd);
+      descriptor_close(descriptor);
+    }
   }
 }
 
@@ -234,6 +240,23 @@ static void descriptor_on_telnet_event(telnet_t* telnet,
   default:
     break;
   }
+}
+
+/* Return the list of open FDs in random order, to prevent certain
+   clients from getting an unfair advantage. g_free() the result. */
+static gpointer* descriptor_fds_in_random_order(guint* length) {
+  gpointer* fds = g_hash_table_get_keys_as_array(descriptors, length);
+  gpointer tmp;
+
+  /* Shuffle. */
+  for (guint i = 0; i < *length; i++) {
+    guint j = g_random_int_range(i, *length);
+    tmp = fds[i];
+    fds[i] = fds[j];
+    fds[j] = tmp;
+  }
+
+  return fds;
 }
 
 /* Send a fresh prompt (from Lua), followed by IAC GA. */
@@ -352,7 +375,7 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
 
     if (pollitem->revents != 0) (*poll_count)--;
     if (pollitem->revents & ZMQ_POLLERR) {
-      ERROR("FD %d in error state. Closing", pollitem->fd);
+      ERROR("FD %d in error state. Closing.", pollitem->fd);
       descriptor_close(descriptor);
       continue;
     }
@@ -362,7 +385,11 @@ void descriptor_handle_pollitems(GArray* /* of zmq_pollitem_t */ pollitems,
 }
 
 void descriptor_handle_commands(void) {
-  DESCRIPTOR_FOREACH(iter, descriptor) {
+  guint length;
+  gpointer* fds = descriptor_fds_in_random_order(&length);
+
+  for (guint i = 0; i < length; i++) {
+    struct descriptor* descriptor = descriptor_get(GPOINTER_TO_INT(fds[i]));
     if (descriptor->state == DESCRIPTOR_STATE_OPEN
         && descriptor->command_queue->used > 0) {
       descriptor->needs_prompt = TRUE;
@@ -371,6 +398,7 @@ void descriptor_handle_commands(void) {
       g_free(command);
     }
   }
+  g_free(fds);
 }
 
 void descriptor_handle_delays(const struct timeval* start) {

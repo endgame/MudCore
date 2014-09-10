@@ -52,6 +52,11 @@ threads. If you don't, clients will be dropped.
 Pause this thread until the next input line is available. The thread
 will be reactivated once the new line arrives. It is an error to call
 this on descriptors belonging to other threads.
+
+Descriptors will only be given one command per server pulse, which is
+100 milliseconds by default (@pxref{Invocation}). The order in which the
+descriptors are fed commands is random, to prevent some clients from
+having an unfair advantage.
 @end defmethod
 
 @defmethod mudcore.descriptor send (@var{str})

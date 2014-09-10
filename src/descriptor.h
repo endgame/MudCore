@@ -149,13 +149,13 @@ void descriptor_init(void);
 void descriptor_deinit(void);
 
 /**
- ** @deftypefun void descriptor_new_fd @
+ ** @deftypefun void descriptor_new @
  **   (gint @var{fd})
  ** Create a new @code{struct descriptor} for @var{fd}, and store it
  ** in the descriptor table.
  ** @end deftypefun
  **/
-void descriptor_new_fd(gint fd);
+void descriptor_new(gint fd);
 
 /**
  ** @deftypefun void descriptor_remove_closed @

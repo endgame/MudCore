@@ -296,7 +296,7 @@ void descriptor_deinit(void) {
   g_hash_table_unref(descriptors);
 }
 
-void descriptor_new_fd(gint fd) {
+void descriptor_new(gint fd) {
   struct descriptor* descriptor = g_new(struct descriptor, 1);
   descriptor->state = DESCRIPTOR_STATE_OPEN;
   descriptor->fd = fd;

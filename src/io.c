@@ -46,7 +46,7 @@ static void io_handle_server(zmq_pollitem_t* server_item,
       gint new_fd;
       while ((new_fd = socket_accept(server_item->fd)) != -1) {
         DEBUG("New FD: %d", new_fd);
-        descriptor_new_fd(new_fd);
+        descriptor_new(new_fd);
       }
     }
     (*pollitems)--;

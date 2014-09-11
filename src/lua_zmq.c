@@ -441,7 +441,7 @@ static gint lua_zmq_watch(lua_State* lua) {
 static void watcher_call(lua_State* lua, gint watcher_ref, gint socket_ref) {
   lua_rawgeti(lua, LUA_REGISTRYINDEX, watcher_ref);
   lua_rawgeti(lua, LUA_REGISTRYINDEX, socket_ref);
-  if (lua_pcall(lua, 1, 0, 0) != 0) {
+  if (lua_pcall(lua, 1, 0, 0) != LUA_OK) {
     const gchar* what = lua_tostring(lua, -1);
     ERROR("Error in mudcore.zmq_socket callback: %s", what);
     lua_pop(lua, 1);
@@ -450,7 +450,7 @@ static void watcher_call(lua_State* lua, gint watcher_ref, gint socket_ref) {
 
     lua_pushcfunction(lua, lua_zmq_close);
     lua_rawgeti(lua, LUA_REGISTRYINDEX, socket_ref);
-    if (lua_pcall(lua, 1, 0, 0) != 0) {
+    if (lua_pcall(lua, 1, 0, 0) != LUA_OK) {
       what = lua_tostring(lua, -1);
       ERROR("Cannot close socket: %s", what);
       lua_pop(lua, 1);

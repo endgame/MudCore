@@ -259,7 +259,7 @@ static void descriptor_send_prompt(struct descriptor* descriptor) {
 
   if (lua_type(lua, -1) == LUA_TFUNCTION) {
     lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
-    if (lua_pcall(lua, 1, 1, 0) != 0) {
+    if (lua_pcall(lua, 1, 1, 0) != LUA_OK) {
       const gchar* what = lua_tostring(lua, -1);
       ERROR("Error in prompt callback function: %s", what);
       lua_pop(lua, 1);
@@ -434,7 +434,7 @@ void descriptor_close(struct descriptor* descriptor) {
     lua_pop(lua, 1);
   } else {
     lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
-    if (lua_pcall(lua, 1, 0, 0) != 0) {
+    if (lua_pcall(lua, 1, 0, 0) != LUA_OK) {
       const gchar* what = lua_tostring(lua, -1);
       ERROR("Error in mud.descriptor.on_close: %s", what);
       lua_pop(lua, 1);

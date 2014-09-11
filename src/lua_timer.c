@@ -132,9 +132,10 @@ void lua_timer_execute(const struct timeval* start) {
     if (!timer->dead
         && timeval_compare(start, &timer->time) > 0) {
       lua_rawgeti(lua, LUA_REGISTRYINDEX, timer->func);
-      if (lua_pcall(lua, 0, 1, 0) != 0) {
+      if (lua_pcall(lua, 0, 1, 0) != LUA_OK) {
         const gchar* what = lua_tostring(lua, -1);
         ERROR("Error in timer callback: %s", what);
+        timer->dead = TRUE;
       } else if (lua_isnumber(lua, -1)
                  && (newdelay = lua_tonumber(lua, -1)) > 0) {
         timer->time = *start;

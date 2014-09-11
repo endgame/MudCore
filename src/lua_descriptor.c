@@ -269,8 +269,13 @@ void lua_descriptor_accept_command(struct descriptor* descriptor) {
                   descriptor->line_buffer->data,
                   descriptor->line_buffer->used);
   buffer_clear(descriptor->line_buffer);
-  /* TODO: pcall! */
-  lua_call(lua, 2, 0);
+
+  if (lua_pcall(lua, 2, 0, 0) != LUA_OK) {
+    const gchar* what = lua_tostring(lua, -1);
+    ERROR("Error in mud.descriptor.on_command: %s", what);
+    lua_pop(lua, 1);
+    descriptor_close(descriptor);
+  }
 }
 
 void lua_descriptor_handle_command(struct descriptor* descriptor) {

@@ -29,11 +29,9 @@
 #include "log.h"
 #include "lua_api.h"
 #include "lua_descriptor.h"
-#include "queue.h"
 #include "socket.h"
 #include "timeval.h"
 
-#define COMMAND_QUEUE_SIZE 10
 #define LINE_BUFFER_SIZE 512
 #define OUTPUT_BUFFER_SIZE 4096
 #define RECV_BUFFER_SIZE 1024
@@ -60,7 +58,6 @@ static void descriptor_destroy(gpointer user_data) {
   telnet_free(descriptor->telnet);
   buffer_free(descriptor->line_buffer);
   buffer_free(descriptor->output_buffer);
-  queue_free(descriptor->command_queue);
   g_free(descriptor);
 }
 
@@ -153,13 +150,7 @@ static void descriptor_handle_input(struct descriptor* descriptor,
     if (data[i] == '\n') {
       descriptor->needs_newline = FALSE;
       descriptor->skip_until_newline = FALSE;
-      if (!queue_push_back_len(descriptor->command_queue,
-                               descriptor->line_buffer->data,
-                               descriptor->line_buffer->used)) {
-        descriptor_append(descriptor,
-                          "Input queue full. Command discarded.\r\n");
-      }
-      buffer_clear(descriptor->line_buffer);
+      lua_descriptor_accept_command(descriptor);
       continue;
     }
     if (descriptor->skip_until_newline) continue;
@@ -328,7 +319,6 @@ void descriptor_new(gint fd) {
   descriptor->delay_end.tv_usec = 0;
   descriptor->line_buffer = buffer_new(LINE_BUFFER_SIZE);
   descriptor->output_buffer = buffer_new(OUTPUT_BUFFER_SIZE);
-  descriptor->command_queue = queue_new(COMMAND_QUEUE_SIZE);
   g_hash_table_insert(descriptors, GINT_TO_POINTER(fd), descriptor);
 
   /* Offer supported telnet options. */
@@ -390,12 +380,8 @@ void descriptor_handle_commands(void) {
 
   for (guint i = 0; i < length; i++) {
     struct descriptor* descriptor = descriptor_get(GPOINTER_TO_INT(fds[i]));
-    if (descriptor->state == DESCRIPTOR_STATE_OPEN
-        && descriptor->command_queue->used > 0) {
-      descriptor->needs_prompt = TRUE;
-      gchar* command = queue_pop_front(descriptor->command_queue);
-      lua_descriptor_command(descriptor, command);
-      g_free(command);
+    if (descriptor->state == DESCRIPTOR_STATE_OPEN) {
+      lua_descriptor_handle_command(descriptor);
     }
   }
   g_free(fds);

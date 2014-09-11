@@ -23,11 +23,14 @@
 #include <lauxlib.h>
 #include <string.h>
 
+#include "buffer.h"
 #include "descriptor.h"
 #include "log.h"
 #include "lua_api.h"
 #include "timeval.h"
 
+#define COMMAND_QUEUE_FIELD "command_queue"
+#define COMMAND_QUEUE_SIZE 10
 #define DESCRIPTOR_TYPE "mudcore.descriptor"
 
 /* If the value at index is a userdatum that represents a descriptor,
@@ -113,6 +116,34 @@ static gint lua_descriptor_delay(lua_State* lua) {
   }
 }
 
+static gint lua_descriptor_on_command(lua_State* lua) {
+  struct descriptor* descriptor = lua_descriptor_get(lua, 1);
+
+  /* We aim to call table.insert(descriptor->command_queue, command) */
+  lua_getglobal(lua, "table");
+  lua_getfield(lua, -1, "insert");
+  lua_remove(lua, -2);
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
+  lua_getfield(lua, -1, COMMAND_QUEUE_FIELD);
+  lua_remove(lua, -2);
+
+  /* Check if the command queue is full. */
+  lua_len(lua, -1);
+  gint len = lua_tonumber(lua, -1);
+  lua_pop(lua, 1);
+
+  if (len >= COMMAND_QUEUE_SIZE) {
+    descriptor_append(descriptor,
+                      "Input queue full. Command discarded.\r\n");
+    lua_pop(lua, 2); /* table.insert, descriptor->command_queue */
+  } else {
+    lua_pushvalue(lua, 2);
+    lua_call(lua, 2, 0);
+  }
+
+  return 0;
+}
+
 static gint lua_descriptor_on_open(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) {
@@ -157,6 +188,7 @@ void lua_descriptor_init(lua_State* lua) {
     { "delay"     , lua_descriptor_delay      },
     { "extra_data", lua_descriptor_extra_data },
     { "is_active" , lua_descriptor_is_active  },
+    { "on_command", lua_descriptor_on_command },
     { "on_open"   , lua_descriptor_on_open    },
     { "read"      , lua_descriptor_read       },
     { "send"      , lua_descriptor_send       },
@@ -202,6 +234,9 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_newtable(lua);
   lua_pushliteral(lua, "? ");
   lua_setfield(lua, -2, "prompt");
+
+  lua_newtable(lua);
+  lua_setfield(lua, -2, "command_queue");
   descriptor->extra_data_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
 
   /* Call mud.descriptor.on_open in the new thread. */
@@ -220,17 +255,61 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_descriptor_resume(descriptor, 1);
 }
 
-void lua_descriptor_command(struct descriptor* descriptor,
-                            const gchar* command) {
+void lua_descriptor_accept_command(struct descriptor* descriptor) {
   lua_State* lua = lua_api_get();
+
+  /* Call mud.descriptor.on_command(descriptor, contents-of-buffer). */
+  lua_getglobal(lua, "mud");
+  lua_getfield(lua, -1, "descriptor");
+  lua_remove(lua, -2);
+  lua_getfield(lua, -1, "on_command");
+  lua_remove(lua, -2);
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
+  lua_pushlstring(lua,
+                  descriptor->line_buffer->data,
+                  descriptor->line_buffer->used);
+  buffer_clear(descriptor->line_buffer);
+  /* TODO: pcall! */
+  lua_call(lua, 2, 0);
+}
+
+void lua_descriptor_handle_command(struct descriptor* descriptor) {
+  lua_State* lua = lua_api_get();
+
   lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->thread_ref);
   lua_State* thread;
   if (lua_isnil(lua, -1) || (thread = lua_tothread(lua, -1)) == NULL) {
     ERROR("Descriptor has lost its thread!");
     descriptor_close(descriptor);
-  } else {
-    lua_pushstring(thread, command);
-    lua_descriptor_resume(descriptor, 1);
+    lua_pop(lua, 1);
+    return;
   }
+
+  /* We aim to call table.remove(descriptor->command_queue, 1) */
+  lua_getglobal(lua, "table");
+  lua_getfield(lua, -1, "remove");
+  lua_remove(lua, -2);
+  lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->extra_data_ref);
+  lua_getfield(lua, -1, COMMAND_QUEUE_FIELD);
+  lua_remove(lua, -2);
+
+  /* Check if there's actually a command to process. */
+  lua_len(lua, -1);
+  gint len = lua_tonumber(lua, -1);
+  lua_pop(lua, 1);
+
+  if (len == 0) {
+    lua_pop(lua, 3); /* thread, table.remove, descriptor->command_queue */
+    return;
+  }
+
+  descriptor->needs_prompt = TRUE;
+
+  /* Get the command. */
+  lua_pushnumber(lua, 1);
+  lua_call(lua, 2, 1);
+
+  lua_xmove(lua, thread, 1);
+  lua_descriptor_resume(descriptor, 1);
   lua_pop(lua, 1);
 }

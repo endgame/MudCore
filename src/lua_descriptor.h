@@ -56,14 +56,19 @@ void lua_descriptor_start(struct descriptor* descriptor);
 void lua_descriptor_resume(struct descriptor* descriptor, gint nargs);
 
 /**
- ** @deftypefun void lua_descriptor_command  @
- **   (struct descriptor* @var{descriptor},  @
- **    const gchar*       @var{command})
- ** Resume a descriptor's thread with @var{command} sent to the
- ** descriptor as the next line of input.
+ ** @deftypefun void lua_descriptor_accept_command @
+ **   (struct descriptor* @var{descriptor})
+ ** Tell the descriptor that there's a new command to queue from its buffer.
  ** @end deftypefun
  **/
-void lua_descriptor_command(struct descriptor* descriptor,
-                            const gchar* command);
+void lua_descriptor_accept_command(struct descriptor* descriptor);
+
+/**
+ ** @deftypefun void lua_descriptor_handle_command  @
+ **   (struct descriptor* @var{descriptor})
+ ** If the descriptor has a waiting command, resume its thread.
+ ** @end deftypefun
+ **/
+void lua_descriptor_handle_command(struct descriptor* descriptor);
 
 #endif

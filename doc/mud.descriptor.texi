@@ -39,6 +39,26 @@ descriptor won't be suitable for writing at this point, but it's a good
 place to remove references to it from your data structures.
 @end defmethod
 
+@defmethod mudcore.descriptor on_command (@var{command})
+This callback is called whenever a complete line is received on the
+socket. The default implementation is equivalent to the following lua
+code:
+
+@example
+function mud.descriptor:on_command(command)
+  if #self.command_queue >= 10 then
+    self:send('Input queue full. Command discarded.\r\n')
+  else
+    table.insert(self.command_queue, command)
+  end
+end
+@end example
+
+You should only need to override this command if you have special
+requirements, like high-priority commands that jump to the front of the
+queue, or commands that clear the input queue.
+@end defmethod
+
 @defmethod mudcore.descriptor on_open ()
 @strong{Your code needs to define this.} It is the entry point for new
 threads. If you don't, clients will be dropped.
@@ -69,6 +89,13 @@ Descriptors also have several instance variables, described below. They
 can store additional fields beyond those listed here, as each descriptor
 contains its own private table. Access these fields as if the descriptor
 was a regular table.
+
+@defivar mudcore.descriptor command_queue
+The command queue is a regular Lua table that is a sequence of the
+received commands awaiting processing. Commands are removed from the
+front of the queue (element 1) and remaining commands are shifted down
+to fill the gap.
+@end defivar
 
 @defivar mudcore.descriptor prompt
 Each descriptor has an independent callback for sending a prompt. This

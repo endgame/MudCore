@@ -30,8 +30,6 @@ mudcore_SOURCES = \
 	mudcore.c \
 	options.c \
 	options.h \
-	queue.c \
-	queue.h \
 	socket.c \
 	socket.h \
 	timeval.c \

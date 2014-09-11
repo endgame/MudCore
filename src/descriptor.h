@@ -34,7 +34,6 @@
 #include <zmq.h>
 
 struct buffer;
-struct queue;
 
 /**
  ** @deftp {Data Type} {enum descriptor_state}
@@ -114,10 +113,6 @@ enum descriptor_state {
  ** Buffer for data waiting to be sent on the socket. This data has
  ** already passed through @code{telnet_send()}.
  ** @end deftypeivar
- ** @deftypeivar {struct descriptor} {struct queue*} command_queue
- ** Queue of completed input commands waiting to be processed by Lua
- ** code.
- ** @end deftypeivar
  ** @end deftp
  **/
 struct descriptor {
@@ -134,7 +129,6 @@ struct descriptor {
   struct timeval delay_end;
   struct buffer* line_buffer;
   struct buffer* output_buffer;
-  struct queue* command_queue;
 };
 
 /**

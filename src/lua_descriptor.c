@@ -210,7 +210,7 @@ void lua_descriptor_resume(struct descriptor* descriptor, gint nargs) {
     descriptor_close(descriptor);
   } else {
     switch (lua_resume(thread, NULL, nargs)) {
-    case 0: /* Terminated. */
+    case LUA_OK:
       descriptor_drain(descriptor);
       return;
     case LUA_YIELD:

@@ -470,8 +470,8 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
                                    g_direct_equal,
                                    NULL,
                                    watcher_destroy);
-  DEBUG("Creating mud.zmq table.");
-  lua_getglobal(lua, "mud");
+  DEBUG("Creating mudcore.zmq table.");
+  lua_getglobal(lua, "mudcore");
 
   /* Put functions in the zmq table. */
   lua_newtable(lua);

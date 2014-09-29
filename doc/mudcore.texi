@@ -92,45 +92,47 @@ Override the MUD's default pulse length (100 milliseconds). This value
 is given in microseconds.
 @end table
 
-All command-line arguments are available to Lua code. @xref{mud.args}.
+All command-line arguments are available to Lua
+code. @xref{mudcore.args}.
 
 @node Concurrency Model
 @chapter Concurrency Model
 
 Lua threads are cooperatively multitasked, so each thread will run until
-it is forced to yield, either by a call to @code{mud.descriptor.delay()}
-or @code{mud.descriptor.read()} (@pxref{mud.descriptor}). During each
-iteration of the event loop, a client thread can consume at most one
-command from its queue of received commands.
+it is forced to yield, either by a call to
+@code{mudcore.descriptor.delay()} or @code{mudcore.descriptor.read()}
+(@pxref{mudcore.descriptor}). During each iteration of the event loop, a
+client thread can consume at most one command from its queue of received
+commands.
 
 ZeroMQ sockets will block on reading if there is no data available. To
 avoid stopping the entire server when this happens, register a callback
 for when data is available on the socket, using
-@code{mud.zmq_socket:watch()} (@pxref{mud.zmq}).
+@code{mudcore.zmq_socket:watch()} (@pxref{mudcore.zmq}).
 
 @node Lua Reference
 @chapter Lua reference
 
 This chapter details the functions available to Lua code. All functions
-are accessed through the global @code{mud} table.
+are accessed through the global @code{mudcore} table.
 
-@defun mud.shutdown ()
+@defun mudcore.shutdown ()
 Shut down the mud.
 @end defun
 
 @menu
-* mud.args::                   Access the command-line arguments.
-* mud.descriptor::             Socket (descriptor) operations.
-* mud.log::                    Logging facility.
-* mud.timer::                  Set functions to be called in the future.
-* mud.zmq::                    Communicate with external programs using ZeroMQ.
+* mudcore.args::               Access the command-line arguments.
+* mudcore.descriptor::         Socket (descriptor) operations.
+* mudcore.log::                Logging facility.
+* mudcore.timer::              Set functions to be called in the future.
+* mudcore.zmq::                Communicate with external programs using ZeroMQ.
 @end menu
 
-@include mud.args.texi
-@include mud.descriptor.texi
-@include mud.log.texi
-@include mud.timer.texi
-@include mud.zmq.texi
+@include mudcore.args.texi
+@include mudcore.descriptor.texi
+@include mudcore.log.texi
+@include mudcore.timer.texi
+@include mudcore.zmq.texi
 
 @node C Reference
 @chapter C Reference

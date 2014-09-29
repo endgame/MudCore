@@ -425,7 +425,9 @@ void descriptor_append(struct descriptor* descriptor, const gchar* msg) {
 void descriptor_close(struct descriptor* descriptor) {
   if (descriptor->state == DESCRIPTOR_STATE_CLOSED) return;
   lua_State* lua = lua_api_get();
-  lua_getglobal(lua, "mud");
+
+  /* Call: mudcore.descriptor.on_close(descriptor). */
+  lua_getglobal(lua, "mudcore");
   lua_getfield(lua, -1, "descriptor");
   lua_remove(lua, -2);
   lua_getfield(lua, -1, "on_close");
@@ -436,7 +438,7 @@ void descriptor_close(struct descriptor* descriptor) {
     lua_rawgeti(lua, LUA_REGISTRYINDEX, descriptor->fd_ref);
     if (lua_pcall(lua, 1, 0, 0) != LUA_OK) {
       const gchar* what = lua_tostring(lua, -1);
-      ERROR("Error in mud.descriptor.on_close: %s", what);
+      ERROR("Error in mudcore.descriptor.on_close: %s", what);
       lua_pop(lua, 1);
     }
   }

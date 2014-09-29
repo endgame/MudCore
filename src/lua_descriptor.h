@@ -31,7 +31,8 @@ struct descriptor;
 /**
  ** @deftypefun void lua_descriptor_init @
  **   (lua_State* @var{lua})
- ** Add the @code{mud.descriptor} api to @var{lua} (@pxref{mud.descriptor}).
+ ** Add the @code{mudcore.descriptor} api to @var{lua}
+ ** (@pxref{mudcore.descriptor}).
  ** @end deftypefun
  **/
 void lua_descriptor_init(lua_State* lua);

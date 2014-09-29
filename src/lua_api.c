@@ -64,7 +64,7 @@ void lua_api_init(gpointer zmq_context, gint argc, gchar* argv[]) {
     { NULL      , NULL         }
   };
   luaL_setfuncs(lua, funcs, 0);
-  lua_setglobal(lua, "mud");
+  lua_setglobal(lua, "mudcore");
   lua_args_init(lua, argc, argv);
   lua_descriptor_init(lua);
   lua_log_init(lua);

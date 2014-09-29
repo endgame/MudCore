@@ -98,8 +98,8 @@ void lua_timer_init(lua_State* lua) {
                                  NULL,
                                  timer_entry_destroy);
 
-  DEBUG("Creating mud.timer table.");
-  lua_getglobal(lua, "mud");
+  DEBUG("Creating mudcore.timer table.");
+  lua_getglobal(lua, "mudcore");
   lua_newtable(lua);
   static const luaL_Reg timer_funcs[] = {
     { "new", lua_timer_new },

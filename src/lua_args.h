@@ -31,7 +31,7 @@
  **   (lua_State* @var{lua},       @
  **    gint       @var{argc},      @
  **    gchar*     @var{argv}[])
- ** Add the @code{mud.args} api to @var{lua} (@pxref{mud.args}).
+ ** Add the @code{mudcore.args} api to @var{lua} (@pxref{mudcore.args}).
  ** @end deftypefun
  **/
 void lua_args_init(lua_State* lua, gint argc, gchar* argv[]);

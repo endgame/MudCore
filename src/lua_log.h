@@ -28,7 +28,7 @@
 /**
  ** @deftypefun void lua_log_init @
  **   (lua_State* @var{lua})
- ** Add the @code{mud.log} api to @var{lua} (@pxref{mud.log}).
+ ** Add the @code{mudcore.log} api to @var{lua} (@pxref{mudcore.log}).
  ** @end deftypefun
  **/
 void lua_log_init(lua_State* lua);

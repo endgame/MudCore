@@ -95,8 +95,8 @@ static gint lua_log_fatal(lua_State* lua) {
 }
 
 void lua_log_init(lua_State* lua) {
-  DEBUG("Creating mud.log table.");
-  lua_getglobal(lua, "mud");
+  DEBUG("Creating mudcore.log table.");
+  lua_getglobal(lua, "mudcore");
 
   /* Put the convenience functions in the log table. */
   lua_newtable(lua);

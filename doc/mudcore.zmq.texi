@@ -1,0 +1,217 @@
+@node mudcore.zmq
+@section mudcore.zmq
+
+The @code{mudcore.zmq} table has functions for commmunication with
+external programs, via the ZeroMQ messaging library. The server
+maintains an internal ZeroMQ context and user code can create sockets
+registered to that context. Lua code may also arrange to be notified
+when a socket's state changes (becomes readable or writeable). The
+interface is inspired by lua-zmq
+(@url{https://github.com/Neopallium/lua-zmq}), but has been changed to
+integrate with mudcore's event loop. Since the sockets are integrated
+into the event loop, they can run only as fast as the server's pulse
+rate. This means that you may want to introduce a caching layer if
+response time is super-important.
+
+Constants defined in the ZeroMQ C API (@code{ZMQ_FOO}) are exposed as
+@code{mudcore.zmq.FOO}. This includes option flags.
+
+A note on type conversion: socket options accept and return different
+types depending on the option specified:
+@itemize
+@item
+  All integers are converted to Lua integers, regardless of size.
+@item
+  Options that have a value of either 0 or 1 take and return Lua
+  booleans.
+@item
+  String options that are reset by passing @code{NULL} in C accept Lua's
+  @code{nil}.
+@item
+  CURVE keys are returned as Z85-encoded strings, but you can pass in
+  strings as either Z85-encoded strings or binary data (in a Lua
+  string).
+@end itemize
+
+@defun mudcore.zmq.getopt (@var{option})
+@defunx mudcore.zmq.setopt (@var{option}, @var{value})
+Alter options on the server's ZeroMQ context. Corresponds to
+@code{zmq_ctx_get()} and @code{zmq_ctx_set()}. @var{option} is one of
+the following constants:
+@itemize
+@item @code{mudcore.zmq.IO_THREADS}
+@item @code{mudcore.zmq.MAX_SOCKETS}
+@item @code{mudcore.zmq.IPV6}
+@end itemize
+
+@var{value} is an integer.
+@end defun
+
+@defun mudcore.zmq.socket (@var{type})
+Create and return a ZeroMQ socket. @var{type} is one of the following
+constants:
+@itemize
+@item @code{mudcore.zmq.REQ}
+@item @code{mudcore.zmq.REP}
+@item @code{mudcore.zmq.DEALER}
+@item @code{mudcore.zmq.ROUTER}
+@item @code{mudcore.zmq.PUB}
+@item @code{mudcore.zmq.SUB}
+@item @code{mudcore.zmq.XPUB}
+@item @code{mudcore.zmq.XSUB}
+@item @code{mudcore.zmq.PUSH}
+@item @code{mudcore.zmq.PULL}
+@item @code{mudcore.zmq.PAIR}
+@end itemize
+
+The returned socket is a Lua userdatum with type
+@code{mudcore.zmq_socket}.
+@end defun
+
+@defun mudcore.zmq.version ()
+Return a table @code{@{MAJOR, MINOR, PATCHLEVEL@}} corresponding to the
+ZeroMQ version.
+@end defun
+
+@defun mudcore.zmq.z85_decode (@var{string})
+@defunx mudcore.zmq.z85_encode (@var{binary})
+Decode a Z85-encoded @var{string} into its binary representation, or
+encode @var{binary} data (also stored as a Lua string) into a
+Z85-encoded string.
+@end defun
+
+@defmethod mudcore.zmq_socket bind (@var{endpoint})
+Bind the socket to @var{endpoint}.
+@end defmethod
+
+@defmethod mudcore.zmq_socket close ()
+Close the socket.
+@end defmethod
+
+@defmethod mudcore.zmq_socket connect (@var{endpoint})
+Connect the socket to @var{endpoint}.
+@end defmethod
+
+@defmethod mudcore.zmq_socket getopt (@var{option})
+Look up a socket option. Valid options are:
+@itemize
+@item @code{mudcore.zmq.AFFINITY}
+@item @code{mudcore.zmq.BACKLOG}
+@item @code{mudcore.zmq.CURVE_PUBLICKEY}
+@item @code{mudcore.zmq.CURVE_SECRETKEY}
+@item @code{mudcore.zmq.CURVE_SERVERKEY}
+@item @code{mudcore.zmq.CURVE_SERVER}
+@item @code{mudcore.zmq.EVENTS}
+@item @code{mudcore.zmq.FD}
+@item @code{mudcore.zmq.IDENTITY}
+@item @code{mudcore.zmq.IMMEDIATE}
+@item @code{mudcore.zmq.IPV6}
+@item @code{mudcore.zmq.LAST_ENDPOINT}
+@item @code{mudcore.zmq.LINGER}
+@item @code{mudcore.zmq.MAXMSGSIZE}
+@item @code{mudcore.zmq.MECHANISM}
+@item @code{mudcore.zmq.MULTICAST_HOPS}
+@item @code{mudcore.zmq.PLAIN_PASSWORD}
+@item @code{mudcore.zmq.PLAIN_SERVER}
+@item @code{mudcore.zmq.PLAIN_USERNAME}
+@item @code{mudcore.zmq.RATE}
+@item @code{mudcore.zmq.RCVBUF}
+@item @code{mudcore.zmq.RCVHWM}
+@item @code{mudcore.zmq.RCVMORE}
+@item @code{mudcore.zmq.RCVTIMEO}
+@item @code{mudcore.zmq.RECONNECT_IVL_MAX}
+@item @code{mudcore.zmq.RECONNECT_IVL}
+@item @code{mudcore.zmq.RECOVERY_IVL}
+@item @code{mudcore.zmq.SNDBUF}
+@item @code{mudcore.zmq.SNDHWM}
+@item @code{mudcore.zmq.SNDTIMEO}
+@item @code{mudcore.zmq.TCP_KEEPALIVE_CNT}
+@item @code{mudcore.zmq.TCP_KEEPALIVE_IDLE}
+@item @code{mudcore.zmq.TCP_KEEPALIVE_INTVL}
+@item @code{mudcore.zmq.TCP_KEEPALIVE}
+@item @code{mudcore.zmq.TYPE}
+@item @code{mudcore.zmq.ZAP_DOMAIN}
+@end itemize
+See the man page for @code{zmq_getsockopt} for a list of option
+descriptions and what is returned for each.
+@end defmethod
+
+@defmethod mudcore.zmq_socket recv (@var{flags} = 0)
+Receive a message on the socket and return it as a string. @var{flags}
+is a combination of zero or more of the following flags:
+@itemize
+@item @code{mudcore.zmq.DONTWAIT}
+@end itemize
+See the man page for @code{zmq_msg_recv} for a description of each flag.
+@end defmethod
+
+@defmethod mudcore.zmq_socket setopt (@var{option}, @var{value})
+Set a socket option. Valid options are:
+@itemize
+@item @code{mudcore.zmq.AFFINITY}
+@item @code{mudcore.zmq.BACKLOG}
+@item @code{mudcore.zmq.CONFLATE}
+@item @code{mudcore.zmq.CURVE_PUBLICKEY}
+@item @code{mudcore.zmq.CURVE_SECRETKEY}
+@item @code{mudcore.zmq.CURVE_SERVERKEY}
+@item @code{mudcore.zmq.CURVE_SERVER}
+@item @code{mudcore.zmq.IDENTITY}
+@item @code{mudcore.zmq.IMMEDIATE}
+@item @code{mudcore.zmq.IPV6}
+@item @code{mudcore.zmq.LINGER}
+@item @code{mudcore.zmq.MAXMSGSIZE}
+@item @code{mudcore.zmq.MULTICAST_HOPS}
+@item @code{mudcore.zmq.PLAIN_PASSWORD}
+@item @code{mudcore.zmq.PLAIN_SERVER}
+@item @code{mudcore.zmq.PLAIN_USERNAME}
+@item @code{mudcore.zmq.PROBE_ROUTER}
+@item @code{mudcore.zmq.RATE}
+@item @code{mudcore.zmq.RCVBUF}
+@item @code{mudcore.zmq.RCVHWM}
+@item @code{mudcore.zmq.RCVTIMEO}
+@item @code{mudcore.zmq.RECONNECT_IVL_MAX}
+@item @code{mudcore.zmq.RECONNECT_IVL}
+@item @code{mudcore.zmq.RECOVERY_IVL}
+@item @code{mudcore.zmq.REQ_CORRELATE}
+@item @code{mudcore.zmq.REQ_RELAXED}
+@item @code{mudcore.zmq.ROUTER_MANDATORY}
+@item @code{mudcore.zmq.SNDBUF}
+@item @code{mudcore.zmq.SNDHWM}
+@item @code{mudcore.zmq.SNDTIMEO}
+@item @code{mudcore.zmq.SUBSCRIBE}
+@item @code{mudcore.zmq.TCP_ACCEPT_FILTER}
+@item @code{mudcore.zmq.TCP_KEEPALIVE_CNT}
+@item @code{mudcore.zmq.TCP_KEEPALIVE_IDLE}
+@item @code{mudcore.zmq.TCP_KEEPALIVE_INTVL}
+@item @code{mudcore.zmq.TCP_KEEPALIVE}
+@item @code{mudcore.zmq.UNSUBSCRIBE}
+@item @code{mudcore.zmq.XPUB_VERBOSE}
+@item @code{mudcore.zmq.ZAP_DOMAIN}
+@end itemize
+See the man page for @code{zmq_setsockopt} for a list of option
+descriptions and what parameter is expected for the option's value.
+@end defmethod
+
+@defmethod mudcore.zmq_socket send (@var{msg}, @var{flags} = 0)
+Send @var{msg} (a string, or convertible to a string) on the
+socket. @var{flags} is a combination of zero or more of the following
+flags:
+@itemize
+@item @code{mudcore.zmq.DONTWAIT}
+@item @code{mudcore.zmq.SNDMORE}
+@end itemize
+See the man page for @code{zmq_msg_send} for a description of each flag.
+@end defmethod
+
+@defmethod mudcore.zmq_socket watch (@var{in_func} = @code{nil}, @
+                                     @var{out_func} = @code{nil})
+
+Watch this socket for events, hooking it into the main event loop (that
+also processes telnet I/O on regular sockets). If any watchers are set
+on a socket, it cannot be garbage collected. @var{in_func} and
+@var{out_func} are functions that take a single argument: the socket
+being watched. If @var{in_func} and @var{out_func} are both @code{nil},
+the watcher is removed entirely, allowing the socket to be collected if
+nothing else is using it. It's better to call @code{:close()} explicitly
+than relying on the GC, though.
+@end defmethod

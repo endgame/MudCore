@@ -24,7 +24,7 @@
 /**
  ** @deftypefun void lua_zmq_init @
  **   (lua_State* @var{lua})
- ** Add the @code{mud.timer} api to @var{lua} (@pxref{mud.timer}).
+ ** Add the @code{mudcore.timer} api to @var{lua} (@pxref{mudcore.timer}).
  ** @end deftypefun
  **/
 void lua_timer_init(lua_State* lua);

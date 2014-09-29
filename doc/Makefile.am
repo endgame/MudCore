@@ -23,11 +23,11 @@ DISTCLEANFILES = $(GENERATED_TEXI)
 info_TEXINFOS = mudcore.texi
 mudcore_TEXINFOS = \
 	$(GENERATED_TEXI) \
-	mud.args.texi \
-	mud.descriptor.texi \
-	mud.log.texi \
-	mud.timer.texi \
-	mud.zmq.texi
+	mudcore.args.texi \
+	mudcore.descriptor.texi \
+	mudcore.log.texi \
+	mudcore.timer.texi \
+	mudcore.zmq.texi
 
 arg_parse.h.texi:      $(top_srcdir)/src/arg_parse.h;      $(GENERATE_TEXI)
 buffer.h.texi:         $(top_srcdir)/src/buffer.h;         $(GENERATE_TEXI)

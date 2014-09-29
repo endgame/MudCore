@@ -1,11 +1,11 @@
-@node mud.descriptor
-@section mud.descriptor
+@node mudcore.descriptor
+@section mudcore.descriptor
 
-The @code{mud.descriptor} table holds the primitives for socket
+The @code{mudcore.descriptor} table holds the primitives for socket
 operations. Each client gets its own lua thread, and can block until
 input is available. Descriptors are exposed as a Lua userdatum with type
 @code{mudcore.descriptor}. Method calls on a descriptor are looked up in
-the @code{mud.descriptor} table, so you can define additional methods
+the @code{mudcore.descriptor} table, so you can define additional methods
 there. Unless noted otherwise, methods can be called upon descriptors in
 other threads.
 
@@ -45,7 +45,7 @@ socket. The default implementation is equivalent to the following lua
 code:
 
 @example
-function mud.descriptor:on_command(command)
+function mudcore.descriptor:on_command(command)
   if #self.command_queue >= 10 then
     self:send('Input queue full. Command discarded.\r\n')
   else

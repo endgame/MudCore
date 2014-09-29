@@ -13,7 +13,7 @@ function string:trim()
 end
 
 -- Read in a loop until a valid name has been read.
-function mud.descriptor:read_name()
+function mudcore.descriptor:read_name()
    local name = self:read():trim():lower()
    if name:match '^%l+$' then
       if PLAYERS[name] then
@@ -28,14 +28,14 @@ function mud.descriptor:read_name()
    end
 end
 
-function mud.descriptor:on_close()
+function mudcore.descriptor:on_close()
    if self.name then
       PLAYERS[self.name] = nil
    end
 end
 
 -- The chat mainloop.
-function mud.descriptor:chat()
+function mudcore.descriptor:chat()
    self.prompt = 'chat> '
    while true do
       local line = self:read()
@@ -48,7 +48,7 @@ function mud.descriptor:chat()
    end
 end
 
-function mud.descriptor:on_open()
+function mudcore.descriptor:on_open()
    self.prompt = '> '
    self:send 'By what name do you wish to be known?\r\n'
    self.name = self:read_name()

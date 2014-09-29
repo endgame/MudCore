@@ -50,8 +50,8 @@ static void lua_args_on_positional(gint argc,
 }
 
 void lua_args_init(lua_State* lua, gint argc, gchar* argv[]) {
-  DEBUG("Creating mud.args table.");
-  lua_getglobal(lua, "mud");
+  DEBUG("Creating mudcore.args table.");
+  lua_getglobal(lua, "mudcore");
   lua_newtable(lua);
   struct arg_parse_funcs funcs = {
     .on_flag       = lua_args_on_flag,

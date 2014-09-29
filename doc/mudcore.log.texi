@@ -1,0 +1,25 @@
+@node mudcore.log
+@section mudcore.log
+
+The @code{mudcore.log} table is used to log messages and to control the
+logging level. @code{mudcore.log} can be called as a function:
+
+@defun mudcore.log (@var{level}, @var{message})
+Log @var{message} at the given @var{level}. @var{level} is one of
+@code{'debug'}, @code{'info'}, @code{'warn'}, @code{'error'} or
+@code{'fatal'}.
+@end defun
+
+@defvar mudcore.log.level
+This evaluates to one of @code{'debug'}, @code{'info'}, @code{'warn'},
+@code{'error'} or @code{'fatal'}. Assigning one of these values to it
+will change the current logging level.
+@end defvar
+
+@defun mudcore.log.debug (@var{message})
+@defunx mudcore.log.info (@var{message})
+@defunx mudcore.log.warn (@var{message})
+@defunx mudcore.log.error (@var{message})
+@defunx mudcore.log.fatal (@var{message})
+Convenience wrappers for the various log levels.
+@end defun

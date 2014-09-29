@@ -148,7 +148,7 @@ static gint lua_descriptor_on_open(lua_State* lua) {
   struct descriptor* descriptor = lua_descriptor_get(lua, 1);
   if (descriptor != NULL) {
     descriptor_append(descriptor,
-                      "You need to redefine mud.descriptor.on_open().\r\n");
+                      "You need to redefine mudcore.descriptor.on_open().\r\n");
     descriptor_drain(descriptor);
   }
   return 0;
@@ -178,8 +178,8 @@ static gint lua_descriptor_will_echo(lua_State* lua) {
 }
 
 void lua_descriptor_init(lua_State* lua) {
-  DEBUG("Creating mud.descriptor table.");
-  lua_getglobal(lua, "mud");
+  DEBUG("Creating mudcore.descriptor table.");
+  lua_getglobal(lua, "mudcore");
   luaL_newmetatable(lua, DESCRIPTOR_TYPE);
   static const luaL_Reg descriptor_methods[] = {
     { "__index"   , lua_descriptor_index      },
@@ -239,8 +239,8 @@ void lua_descriptor_start(struct descriptor* descriptor) {
   lua_setfield(lua, -2, "command_queue");
   descriptor->extra_data_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
 
-  /* Call mud.descriptor.on_open in the new thread. */
-  lua_getglobal(thread, "mud");
+  /* Call (new thread): mudcore.descriptor.on_open(descriptor). */
+  lua_getglobal(thread, "mudcore");
   lua_getfield(thread, -1, "descriptor");
   lua_remove(thread, -2);
   lua_getfield(thread, -1, "on_open");
@@ -258,8 +258,8 @@ void lua_descriptor_start(struct descriptor* descriptor) {
 void lua_descriptor_accept_command(struct descriptor* descriptor) {
   lua_State* lua = lua_api_get();
 
-  /* Call mud.descriptor.on_command(descriptor, contents-of-buffer). */
-  lua_getglobal(lua, "mud");
+  /* Call: mudcore.descriptor.on_command(descriptor, contents-of-buffer). */
+  lua_getglobal(lua, "mudcore");
   lua_getfield(lua, -1, "descriptor");
   lua_remove(lua, -2);
   lua_getfield(lua, -1, "on_command");
@@ -272,7 +272,7 @@ void lua_descriptor_accept_command(struct descriptor* descriptor) {
 
   if (lua_pcall(lua, 2, 0, 0) != LUA_OK) {
     const gchar* what = lua_tostring(lua, -1);
-    ERROR("Error in mud.descriptor.on_command: %s", what);
+    ERROR("Error in mudcore.descriptor.on_command: %s", what);
     lua_pop(lua, 1);
     descriptor_close(descriptor);
   }

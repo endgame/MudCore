@@ -21,7 +21,7 @@ LUA_PACKAGE=lua
 PKG_CHECK_EXISTS([lua5.2], [LUA_PACKAGE=lua5.2])
 PKG_CHECK_EXISTS([lua-5.2], [LUA_PACKAGE=lua-5.2])
 PKG_CHECK_MODULES([Lua], [$LUA_PACKAGE])
-PKG_CHECK_MODULES([ZeroMQ], [libzmq >= 2.1])
+PKG_CHECK_MODULES([ZeroMQ], [libzmq >= 4.0.4])
 
 # Checks for header files.
 

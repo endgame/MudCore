@@ -99,7 +99,6 @@ void lua_log_init(lua_State* lua) {
   lua_getglobal(lua, "mudcore");
 
   /* Put the convenience functions in the log table. */
-  lua_newtable(lua);
   static const luaL_Reg log_funcs[] = {
     { "debug", lua_log_debug },
     { "info" , lua_log_info  },
@@ -108,17 +107,16 @@ void lua_log_init(lua_State* lua) {
     { "fatal", lua_log_fatal },
     { NULL   , NULL          }
   };
-  luaL_setfuncs(lua, log_funcs, 0);
+  luaL_newlibtable(lua, log_funcs);
 
   /* Build the log metatable. */
-  lua_newtable(lua);
   static const luaL_Reg log_meta_funcs[] = {
     { "__call"    , lua_log_call     },
     { "__index"   , lua_log_index    },
     { "__newindex", lua_log_newindex },
     { NULL        , NULL             }
   };
-  luaL_setfuncs(lua, log_meta_funcs, 0);
+  luaL_newlibtable(lua, log_meta_funcs);
   lua_setmetatable(lua, -2);
   lua_setfield(lua, -2, "log");
   lua_pop(lua, 1);

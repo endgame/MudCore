@@ -58,12 +58,11 @@ static gint lua_shutdown(lua_State* lua) {
 void lua_api_init(gpointer zmq_context, gint argc, gchar* argv[]) {
   lua = lua_newstate(lua_glib_alloc, NULL);
   luaL_openlibs(lua);
-  lua_newtable(lua);
   static const luaL_Reg funcs[] = {
     { "shutdown", lua_shutdown },
     { NULL      , NULL         }
   };
-  luaL_setfuncs(lua, funcs, 0);
+  luaL_newlib(lua, funcs);
   lua_setglobal(lua, "mudcore");
   lua_args_init(lua, argc, argv);
   lua_descriptor_init(lua);

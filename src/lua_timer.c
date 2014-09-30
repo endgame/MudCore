@@ -100,12 +100,11 @@ void lua_timer_init(lua_State* lua) {
 
   DEBUG("Creating mudcore.timer table.");
   lua_getglobal(lua, "mudcore");
-  lua_newtable(lua);
   static const luaL_Reg timer_funcs[] = {
     { "new", lua_timer_new },
     { NULL , NULL          }
   };
-  luaL_setfuncs(lua, timer_funcs, 0);
+  luaL_newlibtable(lua, timer_funcs);
   lua_setfield(lua, -2, "timer");
   lua_pop(lua, 1);
 
@@ -115,8 +114,7 @@ void lua_timer_init(lua_State* lua) {
     { "remaining", lua_timer_remaining },
     { NULL       , NULL                }
   };
-  lua_newtable(lua);
-  luaL_setfuncs(lua, timer_methods, 0);
+  luaL_newlibtable(lua, timer_methods);
   lua_setfield(lua, -2, "__index");
   lua_pop(lua, 1);
 }

@@ -474,7 +474,6 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
   lua_getglobal(lua, "mudcore");
 
   /* Put functions in the zmq table. */
-  lua_newtable(lua);
   static const luaL_Reg zmq_funcs[] = {
     { "curve_keypair", lua_zmq_curve_keypair },
     { "getopt"       , lua_zmq_getopt        },
@@ -485,7 +484,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { "z85_encode"   , lua_zmq_z85_encode    },
     { NULL           , NULL                  }
   };
-  luaL_setfuncs(lua, zmq_funcs, 0);
+  luaL_newlibtable(lua, zmq_funcs);
 
   /* Context Options */
   DECLARE_CONST(IO_THREADS);
@@ -586,8 +585,7 @@ void lua_zmq_init(lua_State* lua, gpointer zmq_context) {
     { "watch"  , lua_zmq_watch      },
     { NULL     , NULL               }
   };
-  lua_newtable(lua);
-  luaL_setfuncs(lua, zmq_methods, 0);
+  luaL_newlibtable(lua, zmq_methods);
   lua_setfield(lua, -2, "__index");
   lua_pop(lua, 1);
 }

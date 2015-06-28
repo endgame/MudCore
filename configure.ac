@@ -17,10 +17,25 @@ AC_PROG_SED
 # Checks for libraries.
 PKG_CHECK_MODULES([GLib], [glib-2.0])
 PKG_CHECK_MODULES([libtelnet], [libtelnet])
-LUA_PACKAGE=lua
-PKG_CHECK_EXISTS([lua5.2], [LUA_PACKAGE=lua5.2])
-PKG_CHECK_EXISTS([lua-5.2], [LUA_PACKAGE=lua-5.2])
-PKG_CHECK_MODULES([Lua], [$LUA_PACKAGE])
+
+AC_ARG_WITH([lua_package],
+  [AS_HELP_STRING([--with-lua-package=PACKAGE],
+    [specify lua pkg-config file to use @<:@default=check@:>@])],
+  [],
+  [with_lua_package=check])
+
+AS_IF([test "$with_lua_package" = check -a -z "$Lua_CFLAGS" -a -z "$Lua_LIBS"],
+  [AC_MSG_CHECKING([for lua package])
+   lua_package=no
+   m4_foreach([TEST_PKG], [lua, lua5.2, lua-5.2],
+     [PKG_CHECK_EXISTS([TEST_PKG], [lua_package=TEST_PKG])m4_newline])
+   AC_MSG_RESULT([$lua_package])
+   AS_IF([test $lua_package = no],
+     [AC_MSG_WARN([could not autodetect lua package])
+      lua_package=lua])],
+  [lua_package=$with_lua_package])
+
+PKG_CHECK_MODULES([Lua], [$lua_package])
 PKG_CHECK_MODULES([ZeroMQ], [libzmq >= 4.0.4])
 
 # Checks for header files.
